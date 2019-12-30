@@ -1,4 +1,4 @@
-import { Action, Plugin, LockScript, Rule, TypeScript, RuleName } from "../plugin";
+import { Action, Plugin, LockScript, Rule, RuleName } from "../plugin";
 import * as utils from "@nervosnetwork/ckb-sdk-utils";
 
 export class Secp256k1LockScript implements LockScript {
@@ -28,8 +28,6 @@ export class Secp256k1SinglePlugin implements Plugin {
   public description = "secp256k1 single sign plugin."
 
   public lock: Secp256k1LockScript;
-
-  public type: TypeScript;
 
   public actions: Action[];
 

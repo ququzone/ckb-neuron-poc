@@ -16,9 +16,9 @@ export interface TypeScript extends BaseScript {
 export interface Action {
   name: string;
 
-  transaction(...args: Array<any>): CKBComponents.RawTransaction;
+  transaction(...args: Array<any>): Promise<CKBComponents.RawTransaction>;
 
-  sign(...args: Array<any>): CKBComponents.RawTransaction;
+  sign(...args: Array<any>): Promise<CKBComponents.RawTransaction>;
 }
 
 export enum RuleName {LockCodeHash, LockCodeHashAndArgs, LockHash, TypeCodeHash, TypeCodeHashAndArgs, TypeHash}
@@ -36,7 +36,7 @@ export interface Plugin {
 
   lock: LockScript;
 
-  type: TypeScript | undefined;
+  type?: TypeScript;
 
   actions: Array<Action>;
 
