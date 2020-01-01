@@ -2,42 +2,42 @@ import {Entity, PrimaryGeneratedColumn, Column} from "typeorm";
 
 @Entity()
 export class Rule {
-    @PrimaryGeneratedColumn()
-    id: number;
-  
-    @Column()
-    txHash: string;
+  @PrimaryGeneratedColumn()
+  id: number;
 
-    @Column()
-    index: string;
+  @Column()
+  txHash: string;
 
-    @Column()
-    capacity: string
+  @Column()
+  index: string;
 
-    @Column()
-    lockHash: string;
+  @Column()
+  capacity: string
 
-    @Column()
-    lockHashType: string;
+  @Column()
+  lockHash: string;
 
-    @Column()
-    lockCodeHash: string;
+  @Column()
+  lockHashType: string;
 
-    @Column()
-    lockArgs: string;
+  @Column()
+  lockCodeHash: string;
 
-    @Column()
-    typeHash: string;
+  @Column()
+  lockArgs: string;
 
-    @Column()
-    typeHashType: string;
+  @Column()
+  typeHash: string;
 
-    @Column()
-    typeCodeHash: string;
+  @Column()
+  typeHashType: string;
 
-    @Column()
-    typeArgs: string;
+  @Column()
+  typeCodeHash: string;
 
-    @Column()
-    data: string;
+  @Column()
+  typeArgs: string;
+
+  @Column()
+  data: string;
 }
