@@ -26,16 +26,24 @@ export class Cell {
   @Column()
   lockArgs: string;
 
-  @Column()
+  @Column({
+    nullable: true
+  })
   typeHash: string;
 
-  @Column()
+  @Column({
+    nullable: true
+  })
   typeHashType: string;
 
-  @Column()
+  @Column({
+    nullable: true
+  })
   typeCodeHash: string;
 
-  @Column()
+  @Column({
+    nullable: true
+  })
   typeArgs: string;
 
   @Column()

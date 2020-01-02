@@ -68,8 +68,8 @@ export default class CacheService {
       try {
         const header = await this.ckb.rpc.getTipHeader();
         const headerNumber = BigInt(header.number);
+        logger.debug(`begin sync block at: ${this.currentBlock.toString(10)}`);
         while (this.currentBlock <= headerNumber) {
-          logger.debug(`begin sync block: ${this.currentBlock.toString(10)}`);
           const block = await this.ckb.rpc.getBlockByNumber(`0x${this.currentBlock.toString(16)}`);
           synced = true;
           block.transactions.forEach(tx => {
@@ -105,6 +105,7 @@ export default class CacheService {
         logger.error("cache cells error:", err);
       } finally {
         if (synced) {
+          logger.debug(`sync block since: ${this.currentBlock.toString(10)}`);
           await this.metadataRepository.updateCurrentBlock(this.currentBlock.toString(10));
         }
         await this.yield(10000);
