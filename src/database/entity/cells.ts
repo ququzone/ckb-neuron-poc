@@ -1,7 +1,7 @@
 import {Entity, PrimaryGeneratedColumn, Column} from "typeorm";
 
 @Entity()
-export class Rule {
+export class Cell {
   @PrimaryGeneratedColumn()
   id: number;
 
