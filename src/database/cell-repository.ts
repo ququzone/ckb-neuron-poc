@@ -15,4 +15,8 @@ export default class CellRepository {
   async remove(txHash: string, index: string) {
     await this.repository.delete({txHash: txHash, index: index});
   }
+
+  async clear() {
+    await this.repository.delete({});
+  }
 }

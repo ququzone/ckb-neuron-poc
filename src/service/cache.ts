@@ -1,12 +1,12 @@
 import CKB from "@nervosnetwork/ckb-sdk-core";
+import * as utils from "@nervosnetwork/ckb-sdk-utils";
 import MetadataRepository from "../database/metadata-repository";
 import RuleRepository from "../database/rule-repository";
 import CellRepository from "../database/cell-repository";
 import logger from "../utils/logger";
 import common from "../utils/common";
 import { Cell } from "../database/entity/cell";
-import * as utils from "@nervosnetwork/ckb-sdk-utils";
-import { PromiseUtils } from "typeorm";
+import { Rule } from "../plugins/plugin";
 
 export default class CacheService {
   private ckb: CKB;
@@ -14,8 +14,7 @@ export default class CacheService {
   private ruleRepository: RuleRepository;
   private cellReposicory: CellRepository;
   private rules: Map<string, string[]>;
-  private latestBlock: BigInt;
-  private currentBlcok: BigInt;
+  private currentBlock: BigInt;
   private stopped = false;
 
   public constructor(ckb: CKB) {
@@ -31,17 +30,30 @@ export default class CacheService {
     this.rules.set("TypeHash", []);
   }
 
-  public async reset(): Promise<void> {
-    // reset meta and cell
+  public async reset() {
+    this.stopped = true;
+    await this.cellReposicory.clear();
+    this.stopped = false;
   }
 
   public stop() {
     this.stopped = true;
   }
 
-  public async start(): Promise<void> {
+  public async addRule(rule: Rule) {
+    await this.ruleRepository.save({id: null, name: rule.name.toString(), data: rule.value});
+    const rules = this.rules.get(rule.name.toString());
+    for (let i = 0; i < rules.length; i++) {
+      if (rules[i] === rule.value) {
+        return;
+      }
+    }
+    rules.push(rule.value);
+  }
+
+  public async start() {
     const currentBlockS = await this.metadataRepository.findCurrentBlock();
-    let currentBlock = BigInt(currentBlockS) - BigInt(1);
+    this.currentBlock = BigInt(currentBlockS) - BigInt(1);
 
     const rules = await this.ruleRepository.all();
     rules.forEach(rule => {
@@ -50,12 +62,14 @@ export default class CacheService {
     });
 
     while (!this.stopped) {
+      let synced = false;
       try {
         const header = await this.ckb.rpc.getTipHeader();
         const headerNumber = BigInt(header.number);
-        while (currentBlock <= headerNumber) {
-          logger.debug(`begin sync block: ${currentBlock.toString(10)}`);
-          const block = await this.ckb.rpc.getBlockByNumber(currentBlock);
+        while (this.currentBlock <= headerNumber) {
+          logger.debug(`begin sync block: ${this.currentBlock.toString(10)}`);
+          const block = await this.ckb.rpc.getBlockByNumber(this.currentBlock.toString(10));
+          synced = true;
           block.transactions.forEach(tx => {
             tx.inputs.forEach(input => {
               this.cellReposicory.remove(input.previousOutput.txHash, input.previousOutput.index);
@@ -83,15 +97,14 @@ export default class CacheService {
             }
           });
 
-          currentBlock = BigInt(currentBlock) + BigInt(1);
+          this.currentBlock = BigInt(this.currentBlock) + BigInt(1);
         }
       } catch (err) {
         logger.error("cache cells error:", err);
       } finally {
-        if (this.currentBlcok !== currentBlock) {
-          await this.metadataRepository.updateCurrentBlock(currentBlock.toString(10));
+        if (synced) {
+          await this.metadataRepository.updateCurrentBlock(this.currentBlock.toString(10));
         }
-        this.currentBlcok = currentBlock;
         await this.yield(10000);
       }
     }
