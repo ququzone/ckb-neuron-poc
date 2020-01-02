@@ -1,5 +1,5 @@
 import {getRepository} from "typeorm";
-import {Rule} from "./entity/rules";
+import {Rule} from "./entity/rule";
 
 export default class RuleRepository {
   private repository = getRepository(Rule);

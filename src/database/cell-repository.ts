@@ -1,5 +1,5 @@
 import {getRepository} from "typeorm";
-import {Cell} from "./entity/cells";
+import {Cell} from "./entity/cell";
 
 export default class CellRepository {
   private repository = getRepository(Cell);
