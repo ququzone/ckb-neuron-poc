@@ -6,7 +6,7 @@ import CellRepository from "../database/cell-repository";
 import logger from "../utils/logger";
 import common from "../utils/common";
 import { Cell } from "../database/entity/cell";
-import { Rule } from "../plugins/plugin";
+import { Rule } from "../database/entity/rule";
 
 export default class CacheService {
   private ckb: CKB;
@@ -41,14 +41,15 @@ export default class CacheService {
   }
 
   public async addRule(rule: Rule) {
-    await this.ruleRepository.save({id: null, name: rule.name.toString(), data: rule.value});
+    await this.ruleRepository.save(rule);
     const rules = this.rules.get(rule.name.toString());
     for (let i = 0; i < rules.length; i++) {
-      if (rules[i] === rule.value) {
+      if (rules[i] === rule.data) {
         return;
       }
     }
-    rules.push(rule.value);
+    rules.push(rule.data);
+    this.rules.set(rule.name.toString(), rules);
   }
 
   public async start() {
@@ -59,6 +60,7 @@ export default class CacheService {
     rules.forEach(rule => {
       const rules = this.rules.get(rule.name);
       rules.push(rule.data);
+      this.rules.set(rule.name, rules);
     });
 
     while (!this.stopped) {
@@ -68,7 +70,7 @@ export default class CacheService {
         const headerNumber = BigInt(header.number);
         while (this.currentBlock <= headerNumber) {
           logger.debug(`begin sync block: ${this.currentBlock.toString(10)}`);
-          const block = await this.ckb.rpc.getBlockByNumber(this.currentBlock.toString(10));
+          const block = await this.ckb.rpc.getBlockByNumber(`0x${this.currentBlock.toString(16)}`);
           synced = true;
           block.transactions.forEach(tx => {
             tx.inputs.forEach(input => {
@@ -79,7 +81,7 @@ export default class CacheService {
               if (this.checkCell(output)) {
                 const cell = new Cell();
                 cell.txHash = tx.hash;
-                cell.index = String(i);
+                cell.index = `0x${i.toString(16)}`;
                 cell.capacity = output.capacity;
                 cell.lockHash = utils.scriptToHash(output.lock);
                 cell.lockCodeHash = output.lock.codeHash;
@@ -145,5 +147,9 @@ export default class CacheService {
 
   private async yield(millisecond: number = 1) {
     await common.sleep(millisecond);
+  }
+
+  public async allRules(): Promise<Rule[]> {
+    return this.ruleRepository.all();
   }
 }
