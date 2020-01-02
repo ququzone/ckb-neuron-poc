@@ -6,6 +6,7 @@ import CKB from "@nervosnetwork/ckb-sdk-core";
 import logger from "../../utils/logger";
 import initConnection from "../../database";
 import CacheService from "../cache";
+import CellRepository from "../../database/cell-repository";
 
 initConnection().then(() => {
   const nodeUrl = "http://localhost:8114";
@@ -14,6 +15,7 @@ initConnection().then(() => {
 
   const app = express();
   app.use(bodyParser.json());
+  const cellRepository = new CellRepository();
 
   app.post("/rule", (req: Request, res: Response) => {
     cache.addRule({id:null, name: req.body.name, data: req.body.value});
@@ -23,6 +25,11 @@ initConnection().then(() => {
   app.get("/rules", async (req: Request, res: Response) => {
     const rules = await cache.allRules();
     res.json(rules);
+  });
+
+  app.get("/cells", async (req: Request, res: Response) => {
+    const cells = await cellRepository.find(req.query);
+    res.json(cells);
   });
 
   app.listen(3000);

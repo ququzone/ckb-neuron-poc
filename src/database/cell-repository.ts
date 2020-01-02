@@ -4,7 +4,7 @@ import { Cell } from "./entity/cell";
 export default class CellRepository {
   private repository = getRepository(Cell);
 
-  async save(cell: Cell): Promise<void> {
+  async save(cell: Cell) {
     const exists = await this.repository.findOne({txHash: cell.txHash, index: cell.index});
 
     if (!exists) {
@@ -18,5 +18,28 @@ export default class CellRepository {
 
   async clear() {
     await this.repository.delete({});
+  }
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  async find(query: any): Promise<Cell[]> {
+    const selectBuilder = this.repository.createQueryBuilder().where("1 = 1");
+    if (query.lockHash) {
+      selectBuilder.andWhere("lockHash = :lockHash", {lockHash: query.lockHash});
+    }
+    if (query.lockCodeHash) {
+      selectBuilder.andWhere("lockCodeHash = :lockCodeHash", {lockCodeHash: query.lockCodeHash});
+    }
+    if (query.typeHash) {
+      selectBuilder.andWhere("typeHash = :typeHash", {typeHash: query.typeHash});
+    }
+    if (query.typeCodeHash) {
+      selectBuilder.andWhere("typeCodeHash = :typeCodeHash", {typeCodeHash: query.typeCodeHash});
+    }
+
+    if (query.skip) {
+      selectBuilder.skip(query.skip);
+    }
+    selectBuilder.take(100);
+    return await selectBuilder.getMany();
   }
 }
