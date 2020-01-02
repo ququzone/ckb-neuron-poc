@@ -1,5 +1,5 @@
-import {getRepository} from "typeorm";
-import {Metadata} from "./entity/metadata";
+import { getRepository } from "typeorm";
+import { Metadata } from "./entity/metadata";
 
 export default class MetadataRepository {
   private repository = getRepository(Metadata);
@@ -10,9 +10,9 @@ export default class MetadataRepository {
     if (currentBlock == null) {
       await this.repository.save({
         name: "current_block",
-        value: "0"
+        value: "1"
       });
-      return "0";
+      return "1";
     }
 
     return currentBlock.value;

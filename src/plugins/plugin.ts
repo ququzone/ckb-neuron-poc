@@ -21,7 +21,7 @@ export interface Action {
   sign(...args: Array<any>): Promise<CKBComponents.RawTransaction>;
 }
 
-export enum RuleName {LockCodeHash, LockCodeHashAndArgs, LockHash, TypeCodeHash, TypeCodeHashAndArgs, TypeHash}
+export enum RuleName {LockCodeHash, LockHash, TypeCodeHash, TypeHash}
 
 export class Rule {
   public name: RuleName;
