@@ -2,36 +2,17 @@
   "name": "ckb-neuron-poc-service",
   "version": "0.0.1",
   "description": "nervos neuron extension",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/ququzone/ckb-neuron-poc"
-  },
-  "author": "ququzone",
-  "license": "MIT",
+  "main": "./lib",
   "scripts": {
-    "build": "npm run build-ts && npm run lint",
-    "build-ts": "tsc",
-    "watch-ts": "tsc -w",
-    "lint": "tsc --noEmit && eslint \"**/*.{js,ts}\" --quiet --fix",
-    "test": "jest --forceExit --coverage --verbose"
+    "tsc": "tsc"
   },
   "dependencies": {
     "@nervosnetwork/ckb-sdk-core": "0.26.0",
     "@types/sqlite3": "^3.1.6",
+    "bignumber.js": "9.0.0",
     "reflect-metadata": "^0.1.13",
     "sqlite3": "^4.1.1",
     "typeorm": "^0.2.22",
     "winston": "^3.2.1"
-  },
-  "devDependencies": {
-    "@types/jest": "24.0.18",
-    "@types/node": "^8.0.29",
-    "@typescript-eslint/eslint-plugin": "2.10.0",
-    "@typescript-eslint/parser": "2.10.0",
-    "eslint": "6.7.2",
-    "jest": "^24.9.0",
-    "ts-jest": "^24.1.0",
-    "ts-node": "^8.5.4",
-    "typescript": "3.7.3"
   }
 }

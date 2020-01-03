@@ -37,9 +37,11 @@ Thumbs.db
 
 # Ignore built ts files
 dist/**/*
+packages/*/lib
 
 # ignore yarn.lock
 yarn.lock
+package-lock.json
 
 # database
 database.sqlite

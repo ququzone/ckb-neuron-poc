@@ -1,5 +1,6 @@
 import CKB from "@nervosnetwork/ckb-sdk-core";
 import * as utils from "@nervosnetwork/ckb-sdk-utils";
+import BigNumber from "bignumber.js";
 import MetadataRepository from "../database/metadata-repository";
 import RuleRepository from "../database/rule-repository";
 import CellRepository from "../database/cell-repository";
@@ -14,7 +15,7 @@ export default class CacheService {
   private ruleRepository: RuleRepository;
   private cellReposicory: CellRepository;
   private rules: Map<string, string[]>;
-  private currentBlock: BigInt;
+  private currentBlock: BigNumber;
   private stopped = false;
 
   public constructor(ckb: CKB) {
@@ -54,7 +55,7 @@ export default class CacheService {
 
   public async start() {
     const currentBlockS = await this.metadataRepository.findCurrentBlock();
-    this.currentBlock = BigInt(currentBlockS) - BigInt(1);
+    this.currentBlock = new BigNumber(currentBlockS).minus(1);
 
     const rules = await this.ruleRepository.all();
     rules.forEach(rule => {
@@ -67,9 +68,9 @@ export default class CacheService {
       let synced = false;
       try {
         const header = await this.ckb.rpc.getTipHeader();
-        const headerNumber = BigInt(header.number);
+        const headerNumber = new BigNumber(header.number, 16);
         logger.debug(`begin sync block at: ${this.currentBlock.toString(10)}`);
-        while (this.currentBlock <= headerNumber) {
+        while (this.currentBlock.lte(headerNumber)) {
           const block = await this.ckb.rpc.getBlockByNumber(`0x${this.currentBlock.toString(16)}`);
           synced = true;
           block.transactions.forEach(tx => {
@@ -99,7 +100,7 @@ export default class CacheService {
             }
           });
 
-          this.currentBlock = BigInt(this.currentBlock) + BigInt(1);
+          this.currentBlock = this.currentBlock.plus(1);
         }
       } catch (err) {
         logger.error("cache cells error:", err);

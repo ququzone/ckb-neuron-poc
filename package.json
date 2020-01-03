@@ -9,7 +9,8 @@
     "author": "ququzone",
     "license": "MIT",
     "scripts": {
-        "bootstrap": "lerna bootstrap && lerna link"
+        "bootstrap": "lerna bootstrap",
+        "tsc": "lerna run tsc"
     },
     "dependencies": {
         "lerna": "^3.20.2"

@@ -1,4 +1,4 @@
-import { Action, Plugin, LockScript, Rule, RuleName } from "../../service/plugins/plugin";
+import { Action, Plugin, LockScript, Rule, RuleName } from "service/plugins/plugin";
 import * as utils from "@nervosnetwork/ckb-sdk-utils";
 
 export class Secp256k1LockScript implements LockScript {

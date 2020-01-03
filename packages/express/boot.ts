@@ -3,10 +3,10 @@ import * as bodyParser from "body-parser";
 import {Request, Response} from "express";
 import CKB from "@nervosnetwork/ckb-sdk-core";
 
-import logger from "../../utils/logger";
-import initConnection from "../../../packages/service/database";
-import CacheService from "../cache";
-import CellRepository from "../../../packages/service/database/cell-repository";
+import logger from "ckb-neuron-poc-service/utils/logger";
+import initConnection from "ckb-neuron-poc-service/service/database";
+import CacheService from "ckb-neuron-poc-service/cache";
+import CellRepository from "ckb-neuron-poc-service/service/database/cell-repository";
 
 initConnection().then(() => {
   const nodeUrl = "http://localhost:8114";
