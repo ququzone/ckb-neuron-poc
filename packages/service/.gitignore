@@ -1,5 +1,5 @@
 /node_modules
 /coverage
-/node_modules
 /database.sqlite
 /neuron.log
+/package-lock.json
