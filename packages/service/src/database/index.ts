@@ -1,7 +1,7 @@
 import { createConnection, getConnection } from "typeorm";
-import logger from "../utils/logger";
 
-export const initConnection = async () => {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export const initConnection = async (options: any) => {
   // try to close connection, if not exist, will throw ConnectionNotFoundError when call getConnection()
   try {
     await getConnection().close();
@@ -10,11 +10,11 @@ export const initConnection = async () => {
   }
 
   try {
-    await createConnection();
+    await createConnection(options);
     await getConnection().manager.query("PRAGMA busy_timeout = 3000;");
     await getConnection().manager.query("PRAGMA temp_store = MEMORY;");
   } catch (err) {
-    logger.error(err.message);
+    console.error(err.message);
   }
 };
 

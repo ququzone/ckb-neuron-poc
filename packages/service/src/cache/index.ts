@@ -4,7 +4,6 @@ import BigNumber from "bignumber.js";
 import MetadataRepository from "../database/metadata-repository";
 import RuleRepository from "../database/rule-repository";
 import CellRepository from "../database/cell-repository";
-import logger from "../utils/logger";
 import common from "../utils/common";
 import { Cell } from "../database/entity/cell";
 import { Rule } from "../database/entity/rule";
@@ -69,7 +68,7 @@ export default class CacheService {
       try {
         const header = await this.ckb.rpc.getTipHeader();
         const headerNumber = new BigNumber(header.number, 16);
-        logger.debug(`begin sync block at: ${this.currentBlock.toString(10)}`);
+        console.debug(`begin sync block at: ${this.currentBlock.toString(10)}`);
         while (this.currentBlock.lte(headerNumber)) {
           const block = await this.ckb.rpc.getBlockByNumber(`0x${this.currentBlock.toString(16)}`);
           synced = true;
@@ -103,10 +102,10 @@ export default class CacheService {
           this.currentBlock = this.currentBlock.plus(1);
         }
       } catch (err) {
-        logger.error("cache cells error:", err);
+        console.error("cache cells error:", err);
       } finally {
         if (synced) {
-          logger.debug(`sync block since: ${this.currentBlock.toString(10)}`);
+          console.debug(`sync block since: ${this.currentBlock.toString(10)}`);
           await this.metadataRepository.updateCurrentBlock(this.currentBlock.toString(10));
         }
         await this.yield(10000);

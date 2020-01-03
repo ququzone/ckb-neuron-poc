@@ -1,0 +1,20 @@
+{
+  "type": "sqlite",
+  "database": "database.sqlite",
+  "synchronize": true,
+  "logging": false,
+  "entities": [
+    "node_modules/ckb-neuron-poc-service/lib/database/entity/*.ts"
+  ],
+  "migrations": [
+    "node_modules/ckb-neuron-poc-service/lib/database/entity/*.ts"
+  ],
+  "subscribers": [
+    "node_modules/ckb-neuron-poc-service/lib/database/entity/*.ts"
+  ],
+  "cli": {
+     "entitiesDir": "node_modules/ckb-neuron-poc-service/lib/database/entity",
+     "migrationsDir": "node_modules/ckb-neuron-poc-service/lib/database/entity",
+     "subscribersDir": "node_modules/ckb-neuron-poc-service/lib/database/entity"
+  }
+}

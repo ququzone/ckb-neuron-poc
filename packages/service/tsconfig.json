@@ -1,7 +1,10 @@
 {
   "extends": "../../tsconfig.json",
   "compilerOptions": {
-    "outDir": "./lib"
+    "emitDecoratorMetadata": true,
+    "module": "commonjs",
+    "target": "es2017",
+    "outDir": "lib"
   },
   "include": [
     "./src"

@@ -3,6 +3,7 @@
   "version": "0.0.1",
   "description": "nervos neuron extension",
   "main": "./lib",
+  "typings": "lib/index.d.ts",
   "scripts": {
     "tsc": "tsc"
   },

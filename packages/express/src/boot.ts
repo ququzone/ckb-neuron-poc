@@ -3,12 +3,19 @@ import * as bodyParser from "body-parser";
 import {Request, Response} from "express";
 import CKB from "@nervosnetwork/ckb-sdk-core";
 
-import logger from "ckb-neuron-poc-service/utils/logger";
-import initConnection from "ckb-neuron-poc-service/service/database";
-import CacheService from "ckb-neuron-poc-service/cache";
-import CellRepository from "ckb-neuron-poc-service/service/database/cell-repository";
+import initConnection from "ckb-neuron-poc-service/lib/database";
+import CacheService from "ckb-neuron-poc-service/lib/cache";
+import CellRepository from "ckb-neuron-poc-service/lib/database/cell-repository";
 
-initConnection().then(() => {
+initConnection({
+  "type": "sqlite",
+  "database": "database.sqlite",
+  "synchronize": true,
+  "logging": false,
+  "entities": [
+    "node_modules/ckb-neuron-poc-service/lib/database/entity/*.js"
+  ]
+}).then(() => {
   const nodeUrl = "http://localhost:8114";
   const ckb = new CKB(nodeUrl);
   const cache = new CacheService(ckb);
@@ -35,5 +42,5 @@ initConnection().then(() => {
   app.listen(3000);
   cache.start();
 
-  logger.info("Cache server has started on port 3000.");
-}).catch(error => logger.error("start server error:", error));
+  console.info("Cache server has started on port 3000.");
+}).catch(error => console.error("start server error:", error));

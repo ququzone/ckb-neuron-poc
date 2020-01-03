@@ -1,5 +1,5 @@
-import { Action, Plugin, LockScript, Rule, RuleName } from "service/plugins/plugin";
 import * as utils from "@nervosnetwork/ckb-sdk-utils";
+import { Action, Plugin, LockScript, Rule, RuleName } from "ckb-neuron-poc-service/lib/plugins/plugin";
 
 export class Secp256k1LockScript implements LockScript {
   public name: "Secp256k1SingleLockScript";
