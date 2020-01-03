@@ -11,7 +11,8 @@ module.exports = {
   transform: {
     "^.+\\.(ts|tsx)$": "ts-jest"
   },
-  projects: [
-    "<rootDir>/packages/*",
-  ]
+  testMatch: [
+    "**/__test__/*.test.(ts|js)"
+  ],
+  testEnvironment: "node"
 };

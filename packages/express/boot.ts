@@ -4,9 +4,9 @@ import {Request, Response} from "express";
 import CKB from "@nervosnetwork/ckb-sdk-core";
 
 import logger from "../../utils/logger";
-import initConnection from "../../database";
+import initConnection from "../../../packages/service/database";
 import CacheService from "../cache";
-import CellRepository from "../../database/cell-repository";
+import CellRepository from "../../../packages/service/database/cell-repository";
 
 initConnection().then(() => {
   const nodeUrl = "http://localhost:8114";
