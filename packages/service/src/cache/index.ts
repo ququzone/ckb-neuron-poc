@@ -154,7 +154,7 @@ export default class CacheService {
     return this.ruleRepository.all();
   }
 
-  public resetStartBlockNumber(blockNumber: number) {
-    this.currentBlock = new BigNumber(blockNumber);
+  public resetStartBlockNumber(blockNumber: string) {
+    this.currentBlock = new BigNumber(blockNumber, 10);
   }
 }

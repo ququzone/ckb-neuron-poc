@@ -40,7 +40,7 @@ initConnection({
   });
 
   app.post("/reset", (req: Request, res: Response) => {
-    cache.resetStartBlockNumber(req.body.blockNumber.toInt64());
+    cache.resetStartBlockNumber(req.body.blockNumber);
     return res.end();
   });
 
