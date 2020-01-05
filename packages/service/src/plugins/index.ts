@@ -2,6 +2,8 @@
 export interface BaseScript {
   name: string;
 
+  script: CKBComponents.Script;
+
   hash(): string;
 }
 
