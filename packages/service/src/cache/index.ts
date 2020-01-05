@@ -153,4 +153,8 @@ export default class CacheService {
   public async allRules(): Promise<Rule[]> {
     return this.ruleRepository.all();
   }
+
+  public resetStartBlockNumber(blockNumber: number) {
+    this.currentBlock = new BigNumber(blockNumber);
+  }
 }

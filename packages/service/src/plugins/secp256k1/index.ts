@@ -1,4 +1,4 @@
-import { Action, Plugin, LockScript, Rule, RuleName } from "../plugin";
+import { Action, Plugin, LockScript, Rule, RuleName } from "..";
 import * as utils from "@nervosnetwork/ckb-sdk-utils";
 
 export class Secp256k1LockScript implements LockScript {
@@ -36,6 +36,10 @@ export class Secp256k1SinglePlugin implements Plugin {
       name: RuleName.LockHash,
       value: this.lock.hash(),
     }];
+  }
+
+  public async info(): Promise<string> {
+    throw new Error("Method not implemented.");
   }
 
   public constructor(privateKey: string, actions: Action[]) {

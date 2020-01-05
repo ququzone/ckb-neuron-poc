@@ -1,7 +1,7 @@
-import { Secp256k1LockScript, Secp256k1SinglePlugin } from "../secp256k1-single";
+import { Secp256k1LockScript, Secp256k1SinglePlugin } from "..";
 import CKB from "@nervosnetwork/ckb-sdk-core";
 import * as utils from "@nervosnetwork/ckb-sdk-utils";
-import { Action } from "../../plugin";
+import { Action } from "../..";
 import BigNumber from "bignumber.js";
 
 test("test secp256k1 lock script", () => {

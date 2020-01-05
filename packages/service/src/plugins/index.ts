@@ -41,4 +41,6 @@ export interface Plugin {
   actions: Array<Action>;
 
   cacheRules(): Array<Rule>;
+
+  info(): Promise<string>;
 }
