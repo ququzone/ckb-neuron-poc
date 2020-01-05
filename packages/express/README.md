@@ -50,3 +50,9 @@ curl -XPOST http://localhost:3000/reset \
 }
 '
 ```
+
+## Run plugins
+
+```
+npm run script src/plugin/secp256k1-single-http.ts
+```

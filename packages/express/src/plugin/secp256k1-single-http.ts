@@ -1,4 +1,4 @@
-import { Action } from "ckb-neuron-poc-service/lib/plugins";
+import { Action, RuleName } from "ckb-neuron-poc-service/lib/plugins";
 import { Secp256k1SinglePlugin } from "ckb-neuron-poc-service/lib/plugins/secp256k1";
 import axios from "axios";
 import BigNumber from "bignumber.js";
@@ -22,10 +22,23 @@ export class HttpSecp256k1Plugin extends Secp256k1SinglePlugin {
     }, new BigNumber(0));
     return `${this.lock.hash()} balance is: ${total}`;
   }
+
+  public async register() {
+    const rules = this.cacheRules();
+    rules.forEach(async rule =>  {
+      await axios.post(`${this.url}/rule`, {
+        name: RuleName[rule.name],
+        value: rule.value
+      });
+    });
+  }
 }
 
-export default function run() {
+export default async function run() {
   const plugin = new HttpSecp256k1Plugin("http://localhost:3000", "0x86c5661a58a0589009a600b9008ec083ddf65f0b8e194aa2b1d5178fbdf8122f", []);
+
+  // register cache rules
+  await plugin.register();
 
   plugin.info().then(info => {
     console.log(info);
