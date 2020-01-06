@@ -53,6 +53,11 @@ export default class CacheService {
   }
 
   public async start() {
+    this.processBlock();
+    this.processFork();
+  }
+
+  private async processBlock() {
     const currentBlockS = await this.metadataRepository.findCurrentBlock();
     this.currentBlock = new BigNumber(currentBlockS).minus(1);
 
@@ -74,12 +79,14 @@ export default class CacheService {
           synced = true;
           block.transactions.forEach(tx => {
             tx.inputs.forEach(input => {
-              this.cellReposicory.remove(input.previousOutput.txHash, input.previousOutput.index);
+              this.cellReposicory.updateUsed("pending_dead", tx.hash, this.currentBlock.toString(10), input.previousOutput.txHash, input.previousOutput.index);
             });
             for (let i = 0; i < tx.outputs.length; i++) {
               const output = tx.outputs[i];
               if (this.checkCell(output)) {
                 const cell = new Cell();
+                cell.createdBlockNumber = this.currentBlock.toString(10);
+                cell.status = "normal";
                 cell.txHash = tx.hash;
                 cell.index = `0x${i.toString(16)}`;
                 cell.capacity = output.capacity;
@@ -111,6 +118,10 @@ export default class CacheService {
         await this.yield(10000);
       }
     }
+  }
+
+  private async processFork() {
+    // 
   }
   
   private checkCell(output: CKBComponents.CellOutput): boolean {

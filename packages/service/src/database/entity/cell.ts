@@ -9,6 +9,22 @@ export class Cell {
   txHash: string;
 
   @Column()
+  createdBlockNumber: string;
+
+  @Column({
+    nullable: true
+  })
+  usedBlockNumber: string;
+
+  @Column({
+    nullable: true
+  })
+  usedTxHash: string;
+
+  @Column()
+  status: string;
+
+  @Column()
   index: string;
 
   @Column()

@@ -16,13 +16,20 @@ export default class CellRepository {
     await this.repository.delete({txHash: txHash, index: index});
   }
 
+  async updateUsed(status: string, txHash: string, blockNumber: string, previousTxHash: string, previousIndex: string) {
+    await this.repository.update(
+      {txHash: previousTxHash, index: previousIndex},
+      {status: status, usedTxHash: txHash, usedBlockNumber: blockNumber}
+    );
+  }
+
   async clear() {
     await this.repository.delete({});
   }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   async find(query: any): Promise<Cell[]> {
-    const selectBuilder = this.repository.createQueryBuilder().where("1 = 1");
+    const selectBuilder = this.repository.createQueryBuilder().where("status = 'normal'");
     if (query.lockHash) {
       selectBuilder.andWhere("lockHash = :lockHash", {lockHash: query.lockHash});
     }
