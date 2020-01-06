@@ -86,7 +86,7 @@ export default class CacheService {
               if (this.checkCell(output)) {
                 const cell = new Cell();
                 cell.createdBlockNumber = this.currentBlock.toString(10);
-                cell.status = "normal";
+                cell.status = "pending";
                 cell.txHash = tx.hash;
                 cell.index = `0x${i.toString(16)}`;
                 cell.capacity = output.capacity;
@@ -121,7 +121,32 @@ export default class CacheService {
   }
 
   private async processFork() {
-    // 
+    while (!this.stopped) {
+      try {
+        const header = await this.ckb.rpc.getTipHeader();
+        const headerNumber = new BigNumber(header.number, 16);
+        
+        // process pending cells
+        const pendingCells = await this.cellReposicory.findByStatus("pending");
+        pendingCells.forEach(async cell => {
+          const tx = await this.ckb.rpc.getTransaction(cell.txHash);
+          if (!tx) {
+            await this.cellReposicory.remove(cell.id);
+            return;
+          }
+          if (new BigNumber(cell.createdBlockNumber).plus(30).lte(headerNumber)) {
+            await this.cellReposicory.updateStatus(cell.id, "pending", "normal");
+          }
+        });
+
+        // process pending dead cells
+
+      } catch (err) {
+        console.error("process fork data error:", err);
+      } finally {
+        await this.yield(60000);
+      }
+    }
   }
   
   private checkCell(output: CKBComponents.CellOutput): boolean {

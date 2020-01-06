@@ -12,8 +12,8 @@ export default class CellRepository {
     }
   }
 
-  async remove(txHash: string, index: string) {
-    await this.repository.delete({txHash: txHash, index: index});
+  async remove(id: number) {
+    await this.repository.delete({id: id});
   }
 
   async updateUsed(status: string, txHash: string, blockNumber: string, previousTxHash: string, previousIndex: string) {
@@ -23,13 +23,24 @@ export default class CellRepository {
     );
   }
 
+  async updateStatus(id: number, oldStatus: string, newStatus: string) {
+    await this.repository.update(
+      {id: id, status: oldStatus},
+      {status: newStatus}
+    );
+  }
+
+  async findByStatus(status: string): Promise<Cell[]> {
+    return await this.repository.find({status: status});
+  }
+
   async clear() {
     await this.repository.delete({});
   }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   async find(query: any): Promise<Cell[]> {
-    const selectBuilder = this.repository.createQueryBuilder().where("status = 'normal'");
+    const selectBuilder = this.repository.createQueryBuilder().where("(status = 'normal' or status = 'pending')");
     if (query.lockHash) {
       selectBuilder.andWhere("lockHash = :lockHash", {lockHash: query.lockHash});
     }
@@ -46,6 +57,7 @@ export default class CellRepository {
     if (query.skip) {
       selectBuilder.skip(query.skip);
     }
+    selectBuilder.orderBy("id", "ASC");
     selectBuilder.take(100);
     return await selectBuilder.getMany();
   }
