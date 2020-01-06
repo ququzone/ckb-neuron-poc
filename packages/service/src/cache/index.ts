@@ -140,7 +140,17 @@ export default class CacheService {
         });
 
         // process pending dead cells
-
+        const pendingDeadCells = await this.cellReposicory.findByStatus("pending_dead");
+        pendingDeadCells.forEach(async cell => {
+          const tx = await this.ckb.rpc.getTransaction(cell.usedTxHash);
+          if (!tx) {
+            await this.cellReposicory.updateStatus(cell.id, "pending_dead", "pending");
+            return;
+          }
+          if (new BigNumber(cell.usedBlockNumber).plus(30).lte(headerNumber)) {
+            await this.cellReposicory.remove(cell.id);
+          }
+        });
       } catch (err) {
         console.error("process fork data error:", err);
       } finally {
