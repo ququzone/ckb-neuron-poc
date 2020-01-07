@@ -134,7 +134,7 @@ export default class CacheService {
             await this.cellReposicory.remove(cell.id);
             return;
           }
-          if (new BigNumber(cell.createdBlockNumber).plus(30).lte(headerNumber)) {
+          if (new BigNumber(cell.createdBlockNumber).plus(300).lte(headerNumber)) {
             await this.cellReposicory.updateStatus(cell.id, "pending", "normal");
           }
         });
@@ -147,7 +147,7 @@ export default class CacheService {
             await this.cellReposicory.updateStatus(cell.id, "pending_dead", "pending");
             return;
           }
-          if (new BigNumber(cell.usedBlockNumber).plus(30).lte(headerNumber)) {
+          if (new BigNumber(cell.usedBlockNumber).plus(300).lte(headerNumber)) {
             await this.cellReposicory.remove(cell.id);
           }
         });
