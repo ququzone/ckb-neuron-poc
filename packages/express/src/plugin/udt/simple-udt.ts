@@ -5,6 +5,11 @@ import * as utils from "@nervosnetwork/ckb-sdk-utils";
 import axios from "axios";
 import BigNumber from "bignumber.js";
 
+export function leftPad(origin: string, chars: number): string {
+  const padding = (chars - origin.length + 1 >= 0) ? chars - origin.length + 1 : 0;
+  return `0x${new Array(padding).join("0") + origin}`;
+}
+
 export class UDTTypeScript implements TypeScript {
   public name: "UDTTypeScript";
 
@@ -90,7 +95,7 @@ export class IssueAction implements Action {
         },
       ],
       witnesses: [],
-      outputsData: [utils.toHexInLittleEndian(`0x${new BigNumber(totalSupply).toString(16)}`, 16)]
+      outputsData: [leftPad(`${new BigNumber(totalSupply).toString(16)}`, 32)]
     };
     
     let sum = new BigNumber(0);
@@ -98,7 +103,7 @@ export class IssueAction implements Action {
     const response = await axios.get(`${this.cacheUrl}/cells?lockHash=${utils.scriptToHash(this.lock)}`);
     for (let i = 0; i < response.data.length; i++) {
       const element = response.data[i];
-      if (element.typeHashType) {
+      if (element.typeHashType || element.data != "0x") {
         continue;
       }
 
@@ -124,6 +129,103 @@ export class IssueAction implements Action {
       }
       break;
     }
+
+    rawTx.witnesses[0] = {
+      lock: "",
+      inputType: "",
+      outputType: "",
+    };
+
+    const signedTx = this.ckb.signTransaction(this.privateKey)(rawTx, null);
+
+    return signedTx;
+  }
+}
+
+export class BurnAction implements Action {
+  name = "BurnAction";
+
+  private cacheUrl: string;
+  private ckb: CKB;
+
+  private privateKey: string;
+  private lock: CKBComponents.Script;
+  private type: CKBComponents.Script;
+
+  public constructor(privateKey: string, uuid: string = "", nodeUrl: string = "http://localhost:8114", cacheUrl: string = "http://localhost:3000") {
+    this.privateKey = privateKey;
+    this.ckb = new CKB(nodeUrl);
+    this.cacheUrl = cacheUrl;
+
+    const script = new Secp256k1LockScript(privateKey);
+    this.lock = script.script;
+
+    if (uuid == "") {
+      this.type = {
+        hashType: "data",
+        codeHash: "0x29da1ae6cf75ff3ca035a7289562658f82e4ddfe781666f6ee728f5c1d369c90",
+        args: utils.scriptToHash(this.lock),
+      };
+    } else {
+      this.type = {
+        hashType: "data",
+        codeHash: "0x29da1ae6cf75ff3ca035a7289562658f82e4ddfe781666f6ee728f5c1d369c90",
+        args: uuid,
+      };
+    }
+  }
+  
+  transaction(): Promise<CKBComponents.RawTransaction> {
+    throw new Error("Method not implemented.");
+  }
+
+  async sign(totalSupply: string): Promise<CKBComponents.RawTransaction> {
+    const deps = await this.ckb.loadSecp256k1Dep();
+
+    const rawTx = {
+      version: "0x0",
+      cellDeps: [
+        {
+          outPoint: deps.outPoint,
+          depType: "depGroup" as CKBComponents.DepType,
+        },
+        {
+          outPoint: {
+            txHash: "0x85a8c3431fa0cbe36b52609dd7e70188ae38f258aa2215d6b5c784a72c8a3a95",
+            index: "0x0"
+          },
+          depType: "code" as CKBComponents.DepType,
+        },
+      ],
+      headerDeps: [],
+      inputs: [],
+      outputs: [
+        {
+          capacity: "",
+          lock: this.lock,
+        },
+      ],
+      witnesses: [],
+      outputsData: [utils.toHexInLittleEndian(`0x${new BigNumber(totalSupply).toString(16)}`, 16)]
+    };
+    
+    let sum = new BigNumber(0);
+    // TODO only first 100 cells
+    const response = await axios.get(`${this.cacheUrl}/cells?lockHash=${utils.scriptToHash(this.lock)}&typeHash=${utils.scriptToHash(this.type)}`);
+    for (let i = 0; i < response.data.length; i++) {
+      const element = response.data[i];
+
+      sum = sum.plus(new BigNumber(element.capacity, 16));
+      rawTx.inputs.push({
+        previousOutput: {
+          txHash: element.txHash,
+          index: element.index,
+        },
+        since: "0x0",
+      });
+      rawTx.witnesses.push("0x");
+    }
+    rawTx.outputs[0].capacity = `0x${sum.minus(new BigNumber("1000")).toString(16)}`;
 
     rawTx.witnesses[0] = {
       lock: "",
@@ -174,4 +276,27 @@ export class SimpleUDTPlugin extends Secp256k1SinglePlugin {
       });
     });
   }
+
+  public async info(): Promise<string> {
+    // TODO only first 100 cells
+    const response = await axios.get(`${this.url}/cells?lockHash=${this.lock.hash()}&typeHash=${this.type.hash()}`);
+
+    const total = response.data.reduce((sum: BigNumber, cell: any) => {
+      const hex = cell.data.slice(2).split("").reverse().join("");
+      console.log(hex);
+      return sum.plus(new BigNumber("000000000000000000038d7ea4c68000", 16));
+    }, new BigNumber(0));
+    return `${this.lock.hash()} balance is: ${total}`;
+  }
 }
+
+
+/*
+var leftPad = function (string, chars, sign) {
+  var hasPrefix = /^0x/i.test(string) || typeof string === 'number';
+  string = string.toString(16).replace(/^0x/i,'');
+
+  var padding = (chars - string.length + 1 >= 0) ? chars - string.length + 1 : 0;
+
+  return (hasPrefix ? '0x' : '') + new Array(padding).join(sign ? sign : "0") + string;
+};*/
