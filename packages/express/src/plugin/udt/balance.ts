@@ -1,5 +1,4 @@
 import { SimpleUDTPlugin } from "./simple-udt";
-import BigNumber from "bignumber.js";
 
 export default async function run() {
   let plugin = new SimpleUDTPlugin(
