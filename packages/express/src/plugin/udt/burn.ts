@@ -13,8 +13,6 @@ export default async function run() {
   // register cache rules
   await plugin.register();
 
-  console.log(new BigNumber("1000000000000000").toString(16));
-
   console.log("----------------------------------");
 
   // issue UDT, totalSupply = 1000000000000000
