@@ -17,7 +17,7 @@ export class UDTTypeScript implements TypeScript {
   public constructor(uuid: string) {
     this.script = {
       hashType: "data",
-      codeHash: "0x29da1ae6cf75ff3ca035a7289562658f82e4ddfe781666f6ee728f5c1d369c90",
+      codeHash: "0x48dbf59b4c7ee1547238021b4869bceedf4eea6b43772e5d66ef8865b6ae7212",
       args: uuid,
     };
   }
@@ -44,13 +44,13 @@ export class IssueAction implements Action {
     if (uuid == "") {
       this.type = {
         hashType: "data",
-        codeHash: "0x29da1ae6cf75ff3ca035a7289562658f82e4ddfe781666f6ee728f5c1d369c90",
+        codeHash: "0x48dbf59b4c7ee1547238021b4869bceedf4eea6b43772e5d66ef8865b6ae7212",
         args: utils.scriptToHash(this.lock),
       };
     } else {
       this.type = {
         hashType: "data",
-        codeHash: "0x29da1ae6cf75ff3ca035a7289562658f82e4ddfe781666f6ee728f5c1d369c90",
+        codeHash: "0x48dbf59b4c7ee1547238021b4869bceedf4eea6b43772e5d66ef8865b6ae7212",
         args: uuid,
       };
     }
@@ -70,7 +70,7 @@ export class IssueAction implements Action {
         },
         {
           outPoint: {
-            txHash: "0x85a8c3431fa0cbe36b52609dd7e70188ae38f258aa2215d6b5c784a72c8a3a95",
+            txHash: "0x78fbb1d420d242295f8668cb5cf38869adac3500f6d4ce18583ed42ff348fa64",
             index: "0x0"
           },
           depType: "code" as CKBComponents.DepType,
@@ -94,7 +94,7 @@ export class IssueAction implements Action {
     const response = await axios.get(`${this.cacheUrl}/cells?lockHash=${utils.scriptToHash(this.lock)}`);
     for (let i = 0; i < response.data.length; i++) {
       const element = response.data[i];
-      if (element.typeHashType || element.data != "0x") {
+      if (element.typeHash || element.data != "0x") {
         continue;
       }
 
@@ -155,13 +155,13 @@ export class BurnAction implements Action {
     if (uuid == "") {
       this.type = {
         hashType: "data",
-        codeHash: "0x29da1ae6cf75ff3ca035a7289562658f82e4ddfe781666f6ee728f5c1d369c90",
+        codeHash: "0x48dbf59b4c7ee1547238021b4869bceedf4eea6b43772e5d66ef8865b6ae7212",
         args: utils.scriptToHash(this.lock),
       };
     } else {
       this.type = {
         hashType: "data",
-        codeHash: "0x29da1ae6cf75ff3ca035a7289562658f82e4ddfe781666f6ee728f5c1d369c90",
+        codeHash: "0x48dbf59b4c7ee1547238021b4869bceedf4eea6b43772e5d66ef8865b6ae7212",
         args: uuid,
       };
     }
@@ -179,7 +179,7 @@ export class BurnAction implements Action {
         },
         {
           outPoint: {
-            txHash: "0x85a8c3431fa0cbe36b52609dd7e70188ae38f258aa2215d6b5c784a72c8a3a95",
+            txHash: "0x78fbb1d420d242295f8668cb5cf38869adac3500f6d4ce18583ed42ff348fa64",
             index: "0x0"
           },
           depType: "code" as CKBComponents.DepType,
@@ -247,7 +247,7 @@ export class TransferAction implements Action {
 
     this.type = {
       hashType: "data",
-      codeHash: "0x29da1ae6cf75ff3ca035a7289562658f82e4ddfe781666f6ee728f5c1d369c90",
+      codeHash: "0x48dbf59b4c7ee1547238021b4869bceedf4eea6b43772e5d66ef8865b6ae7212",
       args: uuid,
     };
   }
@@ -268,7 +268,7 @@ export class TransferAction implements Action {
         },
         {
           outPoint: {
-            txHash: "0x85a8c3431fa0cbe36b52609dd7e70188ae38f258aa2215d6b5c784a72c8a3a95",
+            txHash: "0x78fbb1d420d242295f8668cb5cf38869adac3500f6d4ce18583ed42ff348fa64",
             index: "0x0"
           },
           depType: "code" as CKBComponents.DepType,
@@ -325,7 +325,7 @@ export class TransferAction implements Action {
     for (let i = 0; i < response.data.length; i++) {
       const element = response.data[i];
 
-      if (element.type || element.data != "0x") {
+      if (element.typeHash || element.data != "0x") {
         continue;
       }
 
@@ -378,7 +378,7 @@ export class BalanceAction implements Action {
 
     this.type = {
       hashType: "data",
-      codeHash: "0x29da1ae6cf75ff3ca035a7289562658f82e4ddfe781666f6ee728f5c1d369c90",
+      codeHash: "0x48dbf59b4c7ee1547238021b4869bceedf4eea6b43772e5d66ef8865b6ae7212",
       args: uuid,
     };
   }
