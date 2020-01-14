@@ -3,7 +3,7 @@ import { Secp256k1SinglePlugin, Secp256k1LockScript } from "ckb-neuron-poc-servi
 import CKB from "@nervosnetwork/ckb-sdk-core";
 import * as utils from "@nervosnetwork/ckb-sdk-utils";
 import axios from "axios";
-import BigNumber from "bignumber.js";
+import BN from "bn.js";
 
 class SimpleSendAction implements Action {
   name = "SimpleSendAction";
@@ -30,7 +30,7 @@ class SimpleSendAction implements Action {
   async sign(to: CKBComponents.Script, amount: string, fee: string): Promise<CKBComponents.RawTransaction> {
     const deps = await this.ckb.loadSecp256k1Dep();
 
-    const total = new BigNumber(amount).plus(new BigNumber(fee));
+    const total = new BN(amount).add(new BN(fee));
 
     const rawTx = {
       version: "0x0",
@@ -44,7 +44,7 @@ class SimpleSendAction implements Action {
       inputs: [],
       outputs: [
         {
-          capacity: `0x${new BigNumber(amount).toString(16)}`,
+          capacity: `0x${new BN(amount).toString(16)}`,
           lock: to,
         },
       ],
@@ -52,7 +52,7 @@ class SimpleSendAction implements Action {
       outputsData: ["0x"]
     };
     
-    let sum = new BigNumber(0);
+    let sum = new BN(0);
     // TODO only first 100 cells
     const response = await axios.get(`${this.cacheUrl}/cells?lockHash=${utils.scriptToHash(this.lock)}`);
     for (let i = 0; i < response.data.length; i++) {
@@ -61,7 +61,7 @@ class SimpleSendAction implements Action {
         continue;
       }
 
-      sum = sum.plus(new BigNumber(element.capacity, 16));
+      sum = sum.add(new BN(element.capacity.slice(2), 16));
       rawTx.inputs.push({
         previousOutput: {
           txHash: element.txHash,
@@ -73,9 +73,9 @@ class SimpleSendAction implements Action {
       if (sum.lt(total)) {
         continue;
       }
-      if (sum.gt(total) && sum.minus(total).gt(new BigNumber("6100000000"))) {
+      if (sum.gt(total) && sum.sub(total).gt(new BN("6100000000"))) {
         rawTx.outputs.push({
-          capacity: `0x${sum.minus(total).toString(16)}`,
+          capacity: `0x${sum.sub(total).toString(16)}`,
           lock: this.lock,
         });
         rawTx.outputsData.push("0x");
@@ -109,9 +109,9 @@ export class HttpSecp256k1Plugin extends Secp256k1SinglePlugin {
     // TODO only first 100 cells
     const response = await axios.get(`${this.url}/cells?lockHash=${this.lock.hash()}`);
 
-    const total = response.data.reduce((sum: BigNumber, cell: any) => {
-      return sum.plus(new BigNumber(cell.capacity, 16));
-    }, new BigNumber(0));
+    const total = response.data.reduce((sum: BN, cell: any) => {
+      return sum.add(new BN(cell.capacity.slice(2), 16));
+    }, new BN(0));
     return `${this.lock.hash()} balance is: ${total}`;
   }
 

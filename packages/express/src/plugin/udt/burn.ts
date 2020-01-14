@@ -1,6 +1,5 @@
 import { SimpleUDTPlugin, BurnAction } from "./simple-udt";
 import CKB from "@nervosnetwork/ckb-sdk-core";
-import BigNumber from "bignumber.js";
 
 export default async function run() {
   const plugin = new SimpleUDTPlugin(
