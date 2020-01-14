@@ -256,8 +256,8 @@ export class TransferAction implements Action {
     const deps = await this.ckb.loadSecp256k1Dep();
 
     const bigAmount = new BN(amount);
-    const totalCKB = new BN("15000000000").add(new BN(fee));
-    const gatheredCKB = new BN(0);
+    let totalCKB = new BN("15000000000").add(new BN(fee));
+    let gatheredCKB = new BN(0);
 
     const rawTx = {
       version: "0x0",
@@ -302,7 +302,7 @@ export class TransferAction implements Action {
         since: "0x0",
       });
       rawTx.witnesses.push("0x");
-      gatheredCKB.add(new BN(element.capacity.slice(2), 16));
+      gatheredCKB = gatheredCKB.add(new BN(element.capacity.slice(2), 16));
 
       if (sum.lt(bigAmount)) {
         continue;
@@ -316,7 +316,7 @@ export class TransferAction implements Action {
         type: this.type
       });
       rawTx.outputsData.push(`0x${sum.sub(bigAmount).toBuffer("le", 16).toString("hex")}`);
-      totalCKB.add(new BN("15000000000"));
+      totalCKB = totalCKB.add(new BN("15000000000"));
     }
 
     sum = new BN(gatheredCKB);

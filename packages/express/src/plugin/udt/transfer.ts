@@ -38,7 +38,7 @@ command
   .parse(process.argv);
 
 if (command.uuid && command.key && command.to && command.amount) {
-  run(command.uuid, command.key, command.amount, command.amount);
+  run(command.uuid, command.key, command.to, command.amount);
 } else {
   command.help();
 }
