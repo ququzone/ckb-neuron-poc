@@ -32,7 +32,7 @@ const command = new Command();
 command
   .version("0.1.0")
   .option("-u, --uuid <uuid>", "UDT uuid")
-  .option("-k, --key <key>", "private key args")
+  .option("-k, --key <key>", "private key")
   .option("-t, --to <to>", "recipient")
   .option("-a, --amount <amount>", "amount")
   .parse(process.argv);

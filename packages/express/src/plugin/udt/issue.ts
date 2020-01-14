@@ -23,7 +23,7 @@ export default async function run(key: string, totalSupply: string) {
 const command = new Command();
 command
   .version("0.1.0")
-  .option("-k, --key <key>", "private key args")
+  .option("-k, --key <key>", "private key")
   .option("-t, --total <total>", "total supply")
   .parse(process.argv);
 

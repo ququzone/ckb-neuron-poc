@@ -26,7 +26,7 @@ const command = new Command();
 command
   .version("0.1.0")
   .option("-u, --uuid <uuid>", "UDT uuid")
-  .option("-k, --key <key>", "private key args")
+  .option("-k, --key <key>", "private key")
   .parse(process.argv);
 
 if (command.uuid && command.key) {
