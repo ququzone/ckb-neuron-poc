@@ -1,6 +1,6 @@
 import CKB from "@nervosnetwork/ckb-sdk-core";
 import * as utils from "@nervosnetwork/ckb-sdk-utils";
-import BigNumber from "bignumber.js";
+import * as BN from "bn.js";
 import MetadataRepository from "../database/metadata-repository";
 import RuleRepository from "../database/rule-repository";
 import CellRepository from "../database/cell-repository";
@@ -14,7 +14,7 @@ export default class CacheService {
   private ruleRepository: RuleRepository;
   private cellReposicory: CellRepository;
   private rules: Map<string, string[]>;
-  private currentBlock: BigNumber;
+  private currentBlock: BN;
   private stopped = false;
 
   public constructor(ckb: CKB) {
@@ -59,7 +59,7 @@ export default class CacheService {
 
   private async processBlock() {
     const currentBlockS = await this.metadataRepository.findCurrentBlock();
-    this.currentBlock = new BigNumber(currentBlockS).minus(1);
+    this.currentBlock = new BN(currentBlockS).sub(new BN(1));
 
     const rules = await this.ruleRepository.all();
     rules.forEach(rule => {
@@ -72,7 +72,7 @@ export default class CacheService {
       let synced = false;
       try {
         const header = await this.ckb.rpc.getTipHeader();
-        const headerNumber = new BigNumber(header.number, 16);
+        const headerNumber = new BN(header.number.slice(2), 16);
         console.debug(`begin sync block at: ${this.currentBlock.toString(10)}`);
         while (this.currentBlock.lte(headerNumber)) {
           const block = await this.ckb.rpc.getBlockByNumber(`0x${this.currentBlock.toString(16)}`);
@@ -106,7 +106,7 @@ export default class CacheService {
             }
           });
 
-          this.currentBlock = this.currentBlock.plus(1);
+          this.currentBlock = this.currentBlock.add(new BN(1));
         }
       } catch (err) {
         console.error("cache cells error:", err);
@@ -124,7 +124,7 @@ export default class CacheService {
     while (!this.stopped) {
       try {
         const header = await this.ckb.rpc.getTipHeader();
-        const headerNumber = new BigNumber(header.number, 16);
+        const headerNumber = new BN(header.number.slice(2), 16);
         
         // process pending cells
         const pendingCells = await this.cellReposicory.findByStatus("pending");
@@ -134,7 +134,7 @@ export default class CacheService {
             await this.cellReposicory.remove(cell.id);
             return;
           }
-          if (new BigNumber(cell.createdBlockNumber).plus(300).lte(headerNumber)) {
+          if (new BN(cell.createdBlockNumber).add(new BN(300)).lte(headerNumber)) {
             await this.cellReposicory.updateStatus(cell.id, "pending", "normal");
           }
         });
@@ -147,7 +147,7 @@ export default class CacheService {
             await this.cellReposicory.updateStatus(cell.id, "pending_dead", "pending");
             return;
           }
-          if (new BigNumber(cell.usedBlockNumber).plus(300).lte(headerNumber)) {
+          if (new BN(cell.usedBlockNumber).add(new BN(300)).lte(headerNumber)) {
             await this.cellReposicory.remove(cell.id);
           }
         });
@@ -201,6 +201,6 @@ export default class CacheService {
   }
 
   public resetStartBlockNumber(blockNumber: string) {
-    this.currentBlock = new BigNumber(blockNumber, 10);
+    this.currentBlock = new BN(blockNumber, 10);
   }
 }

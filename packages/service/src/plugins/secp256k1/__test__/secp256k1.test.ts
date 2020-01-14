@@ -1,8 +1,8 @@
 import { Secp256k1LockScript, Secp256k1SinglePlugin } from "..";
 import CKB from "@nervosnetwork/ckb-sdk-core";
+import * as BN from "bn.js";
 import * as utils from "@nervosnetwork/ckb-sdk-utils";
 import { Action } from "../..";
-import BigNumber from "bignumber.js";
 
 test("test secp256k1 lock script", () => {
   const script = new Secp256k1LockScript("0x86c5661a58a0589009a600b9008ec083ddf65f0b8e194aa2b1d5178fbdf8122f");
@@ -41,7 +41,7 @@ class TestSendAction implements Action {
       }],
       outputs: [
         {
-          capacity: `0x${new BigNumber(499999990000).toString(16)}`,
+          capacity: `0x${new BN(499999990000).toString(16)}`,
           lock: {
             hashType: "type" as CKBComponents.ScriptHashType,
             codeHash: "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
