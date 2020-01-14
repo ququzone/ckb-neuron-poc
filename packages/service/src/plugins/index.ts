@@ -18,9 +18,11 @@ export interface TypeScript extends BaseScript {
 export interface Action {
   name: string;
 
-  transaction(...args: Array<any>): Promise<CKBComponents.RawTransaction>;
+  transaction?(...args: Array<any>): Promise<CKBComponents.RawTransaction>;
 
-  sign(...args: Array<any>): Promise<CKBComponents.RawTransaction>;
+  sign?(...args: Array<any>): Promise<CKBComponents.RawTransaction>;
+
+  query?(...args: Array<any>): Promise<any>;
 }
 
 export enum RuleName {LockCodeHash, LockHash, TypeCodeHash, TypeHash}

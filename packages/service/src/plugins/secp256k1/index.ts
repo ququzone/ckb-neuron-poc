@@ -32,10 +32,13 @@ export class Secp256k1SinglePlugin implements Plugin {
   public actions: Action[];
 
   public cacheRules(): Rule[] {
-    return [{
-      name: RuleName.LockHash,
-      value: this.lock.hash(),
-    }];
+    if (this.lock) {
+      return [{
+        name: RuleName.LockHash,
+        value: this.lock.hash(),
+      }];
+    }
+    return [];
   }
 
   public async info(): Promise<string> {
@@ -43,7 +46,9 @@ export class Secp256k1SinglePlugin implements Plugin {
   }
 
   public constructor(privateKey: string, actions: Action[]) {
-    this.lock = new Secp256k1LockScript(privateKey);
+    if (privateKey) {
+      this.lock = new Secp256k1LockScript(privateKey);
+    }
     this.actions = actions;
   }
 }

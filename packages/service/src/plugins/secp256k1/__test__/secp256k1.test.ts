@@ -15,10 +15,6 @@ class TestSendAction implements Action {
   private ckb: CKB;
 
   private privateKey: string;
-  
-  transaction(): Promise<CKBComponents.RawTransaction> {
-    throw new Error("Method not implemented.");
-  }
 
   async sign(): Promise<CKBComponents.RawTransaction> {
     const deps = await this.ckb.loadSecp256k1Dep();

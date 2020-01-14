@@ -55,10 +55,6 @@ export class IssueAction implements Action {
       };
     }
   }
-  
-  transaction(): Promise<CKBComponents.RawTransaction> {
-    throw new Error("Method not implemented.");
-  }
 
   async sign(totalSupply: string): Promise<CKBComponents.RawTransaction> {
     const deps = await this.ckb.loadSecp256k1Dep();
@@ -170,10 +166,6 @@ export class BurnAction implements Action {
       };
     }
   }
-  
-  transaction(): Promise<CKBComponents.RawTransaction> {
-    throw new Error("Method not implemented.");
-  }
 
   async sign(): Promise<CKBComponents.RawTransaction> {
     const deps = await this.ckb.loadSecp256k1Dep();
@@ -258,10 +250,6 @@ export class TransferAction implements Action {
       codeHash: "0x29da1ae6cf75ff3ca035a7289562658f82e4ddfe781666f6ee728f5c1d369c90",
       args: uuid,
     };
-  }
-  
-  transaction(): Promise<CKBComponents.RawTransaction> {
-    throw new Error("Method not implemented.");
   }
 
   async sign(to: CKBComponents.Script, amount: string, fee: string): Promise<CKBComponents.RawTransaction> {
@@ -375,6 +363,40 @@ export class TransferAction implements Action {
     const signedTx = this.ckb.signTransaction(this.privateKey)(rawTx, null);
 
     return signedTx;
+  }
+}
+
+export class BalanceAction implements Action {
+  name = "BalanceAction";
+
+  private cacheUrl: string;
+
+  private type: CKBComponents.Script;
+
+  public constructor(uuid: string, cacheUrl: string = "http://localhost:3000") {
+    this.cacheUrl = cacheUrl;
+
+    this.type = {
+      hashType: "data",
+      codeHash: "0x29da1ae6cf75ff3ca035a7289562658f82e4ddfe781666f6ee728f5c1d369c90",
+      args: uuid,
+    };
+  }
+
+  async query(args: string): Promise<any> {
+    const lockHash = utils.scriptToHash({
+      hashType: "type",
+      codeHash: "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
+      args: args,
+    });
+
+    // TODO only first 100 cells
+    const response = await axios.get(`${this.cacheUrl}/cells?lockHash=${lockHash}&typeHash=${utils.scriptToHash(this.type)}`);
+
+    const total = response.data.reduce((sum: BN, cell: any) => {
+      return sum.add(new BN(Buffer.from(cell.data.slice(2), "hex"), 16, "le"));
+    }, new BN(0));
+    return `${lockHash} balance is: ${total}`;
   }
 }
 

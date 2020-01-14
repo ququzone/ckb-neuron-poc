@@ -22,10 +22,6 @@ class SimpleSendAction implements Action {
     const script = new Secp256k1LockScript(privateKey);
     this.lock = script.script;
   }
-  
-  transaction(): Promise<CKBComponents.RawTransaction> {
-    throw new Error("Method not implemented.");
-  }
 
   async sign(to: CKBComponents.Script, amount: string, fee: string): Promise<CKBComponents.RawTransaction> {
     const deps = await this.ckb.loadSecp256k1Dep();

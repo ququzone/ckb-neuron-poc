@@ -1,25 +1,25 @@
-import { SimpleUDTPlugin } from "./simple-udt";
+import { SimpleUDTPlugin, BalanceAction } from "./simple-udt";
 import { Command } from "commander";
 
-export default async function run(uuid: string, key: string) {
+export default async function run(uuid: string, args: string) {
   const plugin = new SimpleUDTPlugin(
     "http://localhost:3000",
     uuid,
-    key,
-    []
+    "",
+    [new BalanceAction(uuid)]
   );
-  console.log(await plugin.info());
+  console.log(await plugin.actions[0].query(args));
 }
 
 const command = new Command();
 command
   .version("0.1.0")
   .option("-u, --uuid <uuid>", "UDT uuid")
-  .option("-k, --key <key>", "private key")
+  .option("-h, --hash <hash>", "secp256k1 public key hash")
   .parse(process.argv);
 
-if (command.uuid && command.key) {
-  run(command.uuid, command.key);
+if (command.uuid && command.hash) {
+  run(command.uuid, command.hash);
 } else {
   command.help();
 }
