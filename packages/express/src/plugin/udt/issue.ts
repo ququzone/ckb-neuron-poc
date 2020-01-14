@@ -1,27 +1,34 @@
 import { SimpleUDTPlugin, IssueAction } from "./simple-udt";
 import CKB from "@nervosnetwork/ckb-sdk-core";
+import { Command } from "commander";
 
-export default async function run() {
+export default async function run(key: string, totalSupply: string) {
   const plugin = new SimpleUDTPlugin(
     "http://localhost:3000",
     "",
-    "0x86c5661a58a0589009a600b9008ec083ddf65f0b8e194aa2b1d5178fbdf8122f",
-    [new IssueAction("0x86c5661a58a0589009a600b9008ec083ddf65f0b8e194aa2b1d5178fbdf8122f")]
+    key,
+    [new IssueAction(key)]
   );
 
   // register cache rules
   await plugin.register();
 
-  // const info = await plugin.info();
-  // console.log(info);
-
-  console.log("----------------------------------");
-
-  // issue UDT, totalSupply = 1000000000000000
-  const tx = await plugin.actions[0].sign("1000000000000000");
+  // issue UDT
+  const tx = await plugin.actions[0].sign(totalSupply);
   const ckb = new CKB("http://localhost:8114");
   const hash = await ckb.rpc.sendTransaction(tx);
   console.log(`issue hash: ${hash}`);
 }
 
-run();
+const command = new Command();
+command
+  .version("0.1.0")
+  .option("-k, --key <key>", "private key args")
+  .option("-t, --total <total>", "total supply")
+  .parse(process.argv);
+
+if (command.key && command.total) {
+  run(command.key, command.total);
+} else {
+  command.help();
+}

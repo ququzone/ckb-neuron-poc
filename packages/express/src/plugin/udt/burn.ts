@@ -1,12 +1,13 @@
 import { SimpleUDTPlugin, BurnAction } from "./simple-udt";
 import CKB from "@nervosnetwork/ckb-sdk-core";
+import { Command } from "commander"; 
 
-export default async function run() {
+export default async function run(uuid: string, key: string) {
   const plugin = new SimpleUDTPlugin(
     "http://localhost:3000",
-    "",
-    "0x86c5661a58a0589009a600b9008ec083ddf65f0b8e194aa2b1d5178fbdf8122f",
-    [new BurnAction("0x86c5661a58a0589009a600b9008ec083ddf65f0b8e194aa2b1d5178fbdf8122f")]
+    uuid,
+    key,
+    [new BurnAction(key, uuid)]
   );
 
   // register cache rules
@@ -14,11 +15,22 @@ export default async function run() {
 
   console.log("----------------------------------");
 
-  // issue UDT, totalSupply = 1000000000000000
-  const tx = await plugin.actions[0].sign("1000000000000000");
+  // issue all UDT
+  const tx = await plugin.actions[0].sign();
   const ckb = new CKB("http://localhost:8114");
   const hash = await ckb.rpc.sendTransaction(tx);
   console.log(`burn hash: ${hash}`);
 }
 
-run();
+const command = new Command();
+command
+  .version("0.1.0")
+  .option("-u, --uuid <uuid>", "UDT uuid")
+  .option("-k, --key <key>", "private key args")
+  .parse(process.argv);
+
+if (command.uuid && command.key) {
+  run(command.uuid, command.key);
+} else {
+  command.help();
+}
