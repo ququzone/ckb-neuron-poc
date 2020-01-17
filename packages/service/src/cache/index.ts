@@ -17,6 +17,28 @@ export interface CacheService {
   findCells(query: any): Promise<Cell[]>;
 }
 
+export class NullCacheService implements CacheService {
+  async addRule(rule: Rule): Promise<void> {
+    return;
+  }
+  
+  async allRules(): Promise<Rule[]> {
+    return [];
+  }
+  
+  async reset(): Promise<void> {
+    return;
+  }
+  
+  resetStartBlockNumber(blockNumber: string): void {
+    return;
+  }
+
+  async findCells(query: any): Promise<Cell[]> {
+    return [];
+  }
+}
+
 export class DefaultCacheService implements CacheService {
   private syncService: SyncService;
   private cellRepository: CellRepository;
