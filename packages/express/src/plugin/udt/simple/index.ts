@@ -1,5 +1,4 @@
-import { Action, RuleName, Script, Rule, DefaultAction } from "ckb-neuron-poc-service/lib/plugins";
-import { Secp256k1SinglePlugin } from "ckb-neuron-poc-service/lib/plugins/secp256k1";
+import { Action, RuleName, Script, Rule, DefaultAction, DefaultPlugin } from "ckb-neuron-poc-service/lib/plugins";
 import * as utils from "@nervosnetwork/ckb-sdk-utils";
 import BN from "bn.js";
 
@@ -87,8 +86,7 @@ export class IssueAction extends DefaultAction {
       if (sum.gt(total) && sum.sub(total).gt(new BN(minCapacity))) {
         rawTx.outputs.push({
           capacity: `0x${sum.sub(total).toString(16)}`,
-          lock: this.plugin.lock.script,
-          type: undefined,
+          lock: this.plugin.lock.script
         });
         rawTx.outputsData.push("0x");
       }
@@ -209,38 +207,40 @@ export class TransferAction extends DefaultAction {
     }
 
     sum = new BN(gatheredCKB);
-    // TODO only first 100 cells
-    cells = await this.plugin.getContext().getCacheService().findCells({lockHash: this.plugin.lock.hash()});
-    for (let i = 0; i < cells.length; i++) {
-      const element = cells[i];
 
-      if (element.typeHash || element.data != "0x") {
-        continue;
-      }
+    if (sum.lt(totalCKB)) {
+      // TODO only first 100 cells
+      cells = await this.plugin.getContext().getCacheService().findCells({lockHash: this.plugin.lock.hash()});
+      for (let i = 0; i < cells.length; i++) {
+        const element = cells[i];
 
-      sum = sum.add(new BN(element.capacity.slice(2), 16));
-      rawTx.inputs.push({
-        previousOutput: {
-          txHash: element.txHash,
-          index: element.index,
-        },
-        since: "0x0",
-      });
-      rawTx.witnesses.push("0x");
-      gatheredCKB.add(new BN(element.capacity.slice(2), 16));
+        if (element.typeHash || element.data != "0x") {
+          continue;
+        }
 
-      if (sum.lt(totalCKB)) {
-        continue;
-      }
-      if (sum.gt(totalCKB) && sum.sub(totalCKB).gt(new BN(minCapacity))) {
-        rawTx.outputs.push({
-          capacity: `0x${sum.sub(totalCKB).toString(16)}`,
-          lock: this.plugin.lock.script,
-          type: undefined
+        sum = sum.add(new BN(element.capacity.slice(2), 16));
+        rawTx.inputs.push({
+          previousOutput: {
+            txHash: element.txHash,
+            index: element.index,
+          },
+          since: "0x0",
         });
-        rawTx.outputsData.push("0x");
+        rawTx.witnesses.push("0x");
+        gatheredCKB.add(new BN(element.capacity.slice(2), 16));
+
+        if (sum.gte(totalCKB)) {
+          break;
+        }
       }
-      break;
+    }
+
+    if (sum.gt(totalCKB) && sum.sub(totalCKB).gt(new BN(minCapacity))) {
+      rawTx.outputs.push({
+        capacity: `0x${sum.sub(totalCKB).toString(16)}`,
+        lock: this.plugin.lock.script
+      });
+      rawTx.outputsData.push("0x");
     }
 
     // @ts-ignore
@@ -272,25 +272,27 @@ export class BalanceAction extends DefaultAction {
   }
 }
 
-export class SimpleUDTPlugin extends Secp256k1SinglePlugin {
+export class SimpleUDTPlugin extends DefaultPlugin {
   private uuid: string;
+  public lock: Script;
   public type: Script;
 
-  public constructor(uuid: string, privateKey: string, actions: Action[],
+  public constructor(uuid: string, actions: Action[], lock?: Script,
       codeHash: string = "0x48dbf59b4c7ee1547238021b4869bceedf4eea6b43772e5d66ef8865b6ae7212",
       hashType: string = "data",
       depTxHash: string = "0x78fbb1d420d242295f8668cb5cf38869adac3500f6d4ce18583ed42ff348fa64",
       depCellIndex: string = "0x0",
       depType: string = "code"
   ) {
-    super(privateKey, actions);
+    super(actions);
 
     if (uuid == "") {
-      this.uuid = utils.scriptToHash(this.lock.script);
+      this.uuid = lock.hash();
     } else {
       this.uuid = uuid;
     }
 
+    this.lock = lock;
     this.type = new UDTTypeScript(this.uuid, codeHash, hashType, depTxHash, depCellIndex, depType);
   }
 

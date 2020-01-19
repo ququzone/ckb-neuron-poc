@@ -1,6 +1,8 @@
 import { Command } from "commander";
 import CKB from "@nervosnetwork/ckb-sdk-core";
+import * as utils from "@nervosnetwork/ckb-sdk-utils";
 import { PluginContext } from "ckb-neuron-poc-service/lib/plugins";
+import { Secp256k1LockScript } from "ckb-neuron-poc-service/lib/plugins/secp256k1";
 import { HttpCacheService } from "../../../..";
 import { SimpleUDTPlugin, TransferAction } from "..";
 
@@ -10,10 +12,14 @@ export default async function run(uuid: string, key: string, to: string, amount:
   const cacheService = new HttpCacheService("http://localhost:3000");
   const context = new PluginContext(ckb, cacheService);
 
+  const publicKey = utils.privateKeyToPublicKey(key);
+  const publicKeyHash = `0x${utils.blake160(publicKey, "hex")}`;
+  const lock = new Secp256k1LockScript(publicKeyHash);
+
   const plugin = new SimpleUDTPlugin(
     uuid,
-    key,
-    [new TransferAction()]
+    [new TransferAction()],
+    lock
   );
 
   context.addPlugin("simple-udt-plugin", plugin);
@@ -28,7 +34,7 @@ export default async function run(uuid: string, key: string, to: string, amount:
     args: to,
   }, amount);
 
-  const tx = plugin.sign(rawTx);
+  const tx = ckb.signTransaction(key)(rawTx, null);
   const hash = await ckb.rpc.sendTransaction(tx);
   console.log(`transfer hash: ${hash}`);
 }

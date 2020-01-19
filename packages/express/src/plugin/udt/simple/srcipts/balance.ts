@@ -12,7 +12,6 @@ export default async function run(uuid: string, lockHash: string) {
 
   const plugin = new SimpleUDTPlugin(
     uuid,
-    "",
     [new BalanceAction()]
   );
 

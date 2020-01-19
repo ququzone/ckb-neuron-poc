@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import CKB from "@nervosnetwork/ckb-sdk-core";
 import { CacheService } from "../cache";
 
@@ -79,6 +78,33 @@ export class DefaultAction implements Action {
       tx.cellDeps.push(...await this.plugin.type.deps());
     }
     return tx;
+  }
+}
+
+export class DefaultPlugin implements Plugin {
+  name: string;
+  actions: Action[];
+
+  private context: PluginContext;
+
+  public constructor(actions: Action[]) {
+    this.actions = actions;
+  }
+
+  cacheRules(): Rule[] {
+    throw new Error("Method not implemented.");
+  }
+
+  info(): Promise<string> {
+    throw new Error("Method not implemented.");
+  }
+
+  setContext(context: PluginContext): void {
+    this.context = context;
+  }
+
+  getContext(): PluginContext {
+    return this.context;
   }
 }
 
