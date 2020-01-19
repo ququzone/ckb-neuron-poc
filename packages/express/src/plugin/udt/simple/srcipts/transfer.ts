@@ -1,29 +1,34 @@
-import { SimpleUDTPlugin, TransferAction } from "./simple-udt";
-import CKB from "@nervosnetwork/ckb-sdk-core";
 import { Command } from "commander";
+import CKB from "@nervosnetwork/ckb-sdk-core";
+import { PluginContext } from "ckb-neuron-poc-service/lib/plugins";
+import { HttpCacheService } from "../../../..";
+import { SimpleUDTPlugin, TransferAction } from "..";
 
 export default async function run(uuid: string, key: string, to: string, amount: string) {
+  const nodeUrl = "http://localhost:8114";
+  const ckb = new CKB(nodeUrl);
+  const cacheService = new HttpCacheService("http://localhost:3000");
+  const context = new PluginContext(ckb, cacheService);
+
   const plugin = new SimpleUDTPlugin(
-    "http://localhost:3000",
     uuid,
     key,
-    [new TransferAction(key, uuid)]
+    [new TransferAction()]
   );
 
-  // register cache rules
-  await plugin.register();
+  context.addPlugin("simple-udt-plugin", plugin);
 
   const info = await plugin.info();
   console.log(info);
 
   console.log("----------------------------------");
-  const tx = await plugin.actions[0].sign({
+  const rawTx = await plugin.actions[0].transaction({
     hashType: "type" as CKBComponents.ScriptHashType,
     codeHash: "0x9bd7e06f3ecf4be0f2fcd2188b23f1b9fcc88e5d4b65a8637b17723bbda3cce8",
     args: to,
-  }, amount, 1000);
+  }, amount);
 
-  const ckb = new CKB("http://localhost:8114");
+  const tx = plugin.sign(rawTx);
   const hash = await ckb.rpc.sendTransaction(tx);
   console.log(`transfer hash: ${hash}`);
 }

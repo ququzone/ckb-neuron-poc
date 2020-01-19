@@ -1,21 +1,26 @@
-import { SimpleUDTPlugin, IssueAction } from "./simple-udt";
-import CKB from "@nervosnetwork/ckb-sdk-core";
 import { Command } from "commander";
+import CKB from "@nervosnetwork/ckb-sdk-core";
+import { PluginContext } from "ckb-neuron-poc-service/lib/plugins";
+import { HttpCacheService } from "../../../..";
+import { SimpleUDTPlugin, IssueAction } from "..";
 
 export default async function run(key: string, totalSupply: string) {
+  const nodeUrl = "http://localhost:8114";
+  const ckb = new CKB(nodeUrl);
+  const cacheService = new HttpCacheService("http://localhost:3000");
+  const context = new PluginContext(ckb, cacheService);
+
   const plugin = new SimpleUDTPlugin(
-    "http://localhost:3000",
     "",
     key,
-    [new IssueAction(key)]
+    [new IssueAction()]
   );
 
-  // register cache rules
-  await plugin.register();
+  context.addPlugin("simple-udt-plugin", plugin);
 
   // issue UDT
-  const tx = await plugin.actions[0].sign(totalSupply);
-  const ckb = new CKB("http://localhost:8114");
+  const rawTx = await plugin.actions[0].transaction(totalSupply);
+  const tx = plugin.sign(rawTx);
   const hash = await ckb.rpc.sendTransaction(tx);
   console.log(`issue hash: ${hash}`);
 }
