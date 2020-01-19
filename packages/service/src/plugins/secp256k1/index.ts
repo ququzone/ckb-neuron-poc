@@ -45,7 +45,7 @@ export class Secp256k1SinglePlugin implements Plugin {
 
   private privateKey: string;
 
-  private ckb: CKB;
+  private context: PluginContext;
 
   public cacheRules(): Rule[] {
     if (this.lock) {
@@ -72,10 +72,14 @@ export class Secp256k1SinglePlugin implements Plugin {
   }
 
   public setContext(context: PluginContext) {
-    this.ckb = context.getCKB();
+    this.context = context;
+  }
+
+  public getContext(): PluginContext {
+    return this.context;
   }
 
   public sign(tx: CKBComponents.RawTransaction): CKBComponents.RawTransaction {
-    return this.ckb.signTransaction(this.privateKey)(tx, null);
+    return this.context.getCKB().signTransaction(this.privateKey)(tx, null);
   }
 }

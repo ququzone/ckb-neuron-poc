@@ -31,7 +31,6 @@ class TestSendAction extends DefaultAction {
         args: "0xbf3e92da4911fa5f620e7b1fd27c2d0ddd0de744",
       },
     });
-    // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
     // @ts-ignore
     tx.witnesses.push({
       lock: "",

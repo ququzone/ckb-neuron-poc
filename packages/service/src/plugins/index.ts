@@ -48,12 +48,14 @@ export interface Plugin {
   info(): Promise<string>;
 
   setContext?(context: PluginContext): void;
+
+  getContext?(): PluginContext;
 }
 
 export class DefaultAction implements Action {
   public name = "DefaultAction";
 
-  private plugin: Plugin;
+  protected plugin: Plugin;
 
   public setPlugin(plugin: Plugin): void {
     this.plugin = plugin;

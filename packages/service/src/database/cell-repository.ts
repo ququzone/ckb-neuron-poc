@@ -38,7 +38,6 @@ export default class CellRepository {
     await this.repository.delete({});
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   async find(query: any): Promise<Cell[]> {
     const selectBuilder = this.repository.createQueryBuilder().where("(status = 'normal' or status = 'pending')");
     if (query.lockHash) {

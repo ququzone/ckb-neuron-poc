@@ -1,6 +1,5 @@
 import { createConnection, getConnection } from "typeorm";
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const initConnection = async (options: any) => {
   // try to close connection, if not exist, will throw ConnectionNotFoundError when call getConnection()
   try {

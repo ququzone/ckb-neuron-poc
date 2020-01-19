@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import CKB from "@nervosnetwork/ckb-sdk-core";
 import { Rule } from "../database/entity/rule";
 import { Cell } from "../database/entity/cell";
