@@ -6,8 +6,6 @@ import BN from "bn.js";
 export class UDTTypeScript implements Script {
   public name: "SimpleUDTTypeScript";
 
-  private codeHash: string;
-  private hashType: string;
   private depTxHash: string;
   private depCellIndex: string;
   private depType: string;
@@ -28,12 +26,15 @@ export class UDTTypeScript implements Script {
     }];
   }
 
-  public constructor(uuid: string) {
+  public constructor(uuid: string, codeHash: string, hashType: string, depTxHash: string, depCellIndex: string, depType: string) {
     this.script = {
-      hashType: this.hashType as CKBComponents.ScriptHashType,
-      codeHash: this.codeHash,
+      hashType: hashType as CKBComponents.ScriptHashType,
+      codeHash: codeHash,
       args: uuid,
     };
+    this.depTxHash = depTxHash;
+    this.depCellIndex = depCellIndex;
+    this.depType = depType;
   }
 }
 
@@ -273,9 +274,15 @@ export class BalanceAction extends DefaultAction {
 
 export class SimpleUDTPlugin extends Secp256k1SinglePlugin {
   private uuid: string;
-  private type: Script;
+  public type: Script;
 
-  public constructor(uuid: string, privateKey: string, actions: Action[]) {
+  public constructor(uuid: string, privateKey: string, actions: Action[],
+      codeHash: string = "0x48dbf59b4c7ee1547238021b4869bceedf4eea6b43772e5d66ef8865b6ae7212",
+      hashType: string = "data",
+      depTxHash: string = "0x78fbb1d420d242295f8668cb5cf38869adac3500f6d4ce18583ed42ff348fa64",
+      depCellIndex: string = "0x0",
+      depType: string = "code"
+  ) {
     super(privateKey, actions);
 
     if (uuid == "") {
@@ -284,7 +291,7 @@ export class SimpleUDTPlugin extends Secp256k1SinglePlugin {
       this.uuid = uuid;
     }
 
-    this.type = new UDTTypeScript(this.uuid);
+    this.type = new UDTTypeScript(this.uuid, codeHash, hashType, depTxHash, depCellIndex, depType);
   }
 
   public cacheRules(): Rule[] {
