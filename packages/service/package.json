@@ -5,7 +5,8 @@
   "main": "./lib",
   "typings": "lib/index.d.ts",
   "scripts": {
-    "tsc": "tsc"
+    "tsc": "tsc",
+    "test": "jest --forceExit --coverage --verbose"
   },
   "dependencies": {
     "@nervosnetwork/ckb-sdk-core": "0.26.0",
@@ -16,5 +17,10 @@
     "sqlite3": "^4.1.1",
     "typeorm": "^0.2.22",
     "winston": "^3.2.1"
+  },
+  "devDependencies": {
+    "@types/jest": "24.0.18",
+    "jest": "^24.9.0",
+    "ts-jest": "^24.1.0"
   }
 }

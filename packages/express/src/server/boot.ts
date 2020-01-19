@@ -4,7 +4,7 @@ import {Request, Response} from "express";
 import CKB from "@nervosnetwork/ckb-sdk-core";
 
 import initConnection from "ckb-neuron-poc-service/lib/database";
-import CacheService from "ckb-neuron-poc-service/lib/cache";
+import { DefaultCacheService } from "ckb-neuron-poc-service/lib/cache";
 import CellRepository from "ckb-neuron-poc-service/lib/database/cell-repository";
 
 initConnection({
@@ -18,14 +18,14 @@ initConnection({
 }).then(() => {
   const nodeUrl = "http://localhost:8114";
   const ckb = new CKB(nodeUrl);
-  const cache = new CacheService(ckb);
+  const cache = new DefaultCacheService(ckb);
 
   const app = express();
   app.use(bodyParser.json());
   const cellRepository = new CellRepository();
 
   app.post("/rule", (req: Request, res: Response) => {
-    cache.addRule({id:null, name: req.body.name, data: req.body.value});
+    cache.addRule({id:null, name: req.body.name, data: req.body.data});
     return res.end();
   });
 
