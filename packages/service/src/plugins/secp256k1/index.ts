@@ -1,6 +1,6 @@
 import * as utils from "@nervosnetwork/ckb-sdk-utils";
 import CKB from "@nervosnetwork/ckb-sdk-core";
-import { Action, Plugin, Script, Rule, RuleName, PluginContext } from "..";
+import { Action, DefaultPlugin, Script, Rule, RuleName, PluginContext } from "..";
 
 export class Secp256k1LockScript implements Script {
   public name: "Secp256k1SingleLockScript";
@@ -34,7 +34,7 @@ export class Secp256k1LockScript implements Script {
   }
 }
 
-export class Secp256k1SinglePlugin implements Plugin {
+export class Secp256k1SinglePlugin extends DefaultPlugin {
   public name = "Secp256k1Single";
 
   public description = "secp256k1 single sign plugin."
@@ -44,8 +44,6 @@ export class Secp256k1SinglePlugin implements Plugin {
   public actions: Action[];
 
   private privateKey: string;
-
-  private context: PluginContext;
 
   public cacheRules(): Rule[] {
     if (this.lock) {
@@ -62,6 +60,8 @@ export class Secp256k1SinglePlugin implements Plugin {
   }
 
   public constructor(privateKey: string, actions: Action[]) {
+    super(actions);
+  
     if (privateKey) {
       const publicKey = utils.privateKeyToPublicKey(privateKey);
       const publicKeyHash = `0x${utils.blake160(publicKey, "hex")}`;
@@ -71,15 +71,7 @@ export class Secp256k1SinglePlugin implements Plugin {
     this.actions = actions;
   }
 
-  public setContext(context: PluginContext) {
-    this.context = context;
-  }
-
-  public getContext(): PluginContext {
-    return this.context;
-  }
-
   public sign(tx: CKBComponents.RawTransaction): CKBComponents.RawTransaction {
-    return this.context.getCKB().signTransaction(this.privateKey)(tx, null);
+    return this.getContext().getCKB().signTransaction(this.privateKey)(tx, null);
   }
 }
