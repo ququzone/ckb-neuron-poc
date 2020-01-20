@@ -10,6 +10,7 @@ export class Query {
   lockCodeHash: string;
   typeHash: string;
   typeCodeHash: string;
+  data: string;
   capacity: BN;
   capacityFetcher: (cell: Cell) => BN;
 
@@ -18,8 +19,21 @@ export class Query {
     this.lockCodeHash = queryBuilder.lockCodeHash;
     this.typeHash = queryBuilder.typeHash;
     this.typeCodeHash = queryBuilder.typeCodeHash;
+    this.data = queryBuilder.data;
     this.capacity = queryBuilder.capacity;
     this.capacityFetcher = queryBuilder.capacityFetcher;
+  }
+}
+
+export class QueryResult {
+  cells: Cell[];
+  totalCKB: BN;
+  total: BN;
+
+  public static EmptyResult = {
+    cells: [],
+    totalCKB: new BN(0),
+    total: new BN(0)
   }
 }
 
@@ -28,10 +42,20 @@ export class QueryBuilder {
   private _lockCodeHash: string;
   private _typeHash: string;
   private _typeCodeHash: string;
+  private _data: string;
   private _capacity: BN;
   private _capacityFetcher: (cell: Cell) => BN;
 
+  static create(): QueryBuilder {
+    return new QueryBuilder();
+  }
+
   build(): Query {
+    if (!this._capacityFetcher) {
+      this._capacityFetcher = (cell: Cell) => {
+        return new BN(cell.capacity.slice(2), 16);
+      }
+    }
     return new Query(this);
   }
 
@@ -52,6 +76,11 @@ export class QueryBuilder {
 
   setTypeCodeHash(typeCodeHash: string): QueryBuilder {
     this._typeCodeHash = typeCodeHash;
+    return this;
+  }
+
+  setData(data: string): QueryBuilder {
+    this._data = data;
     return this;
   }
 
@@ -81,6 +110,10 @@ export class QueryBuilder {
     return this._typeCodeHash;
   }
 
+  get data() {
+    return this._data;
+  }
+
   get capacity() {
     return this._capacity;
   }
@@ -99,7 +132,7 @@ export interface CacheService {
 
   resetStartBlockNumber(blockNumber: string): void;
 
-  findCells(query: any): Promise<Cell[]>;
+  findCells(query: Query): Promise<QueryResult>;
 }
 
 export class NullCacheService implements CacheService {
@@ -119,8 +152,8 @@ export class NullCacheService implements CacheService {
     return;
   }
 
-  async findCells(query: any): Promise<Cell[]> {
-    return [];
+  async findCells(query: Query): Promise<QueryResult> {
+    return QueryResult.EmptyResult;
   }
 }
 
@@ -130,6 +163,7 @@ export class DefaultCacheService implements CacheService {
 
   public constructor(ckb: CKB) {
     this.syncService = new SyncService(ckb);
+    this.cellRepository = new CellRepository();
   }
 
   public async start() {
@@ -152,7 +186,38 @@ export class DefaultCacheService implements CacheService {
     this.syncService.resetStartBlockNumber(blockNumber);
   }
 
-  async findCells(query: any): Promise<Cell[]> {
-    return this.cellRepository.find(query);
+  async findCells(query: Query): Promise<QueryResult> {
+    const totalCKB = new BN(0);
+    const total = new BN(0);
+    const cells = [];
+    let skip = 0;
+    while (true) {
+      let stop = false;
+      // @ts-ignore
+      query.skip = skip;
+      const data = await this.cellRepository.find(query);
+      for (let i = 0; i < data.length; i++) {
+        const cell = data[i];
+        total.iadd(query.capacityFetcher(cell));
+        totalCKB.iadd(new BN(cell.capacity.slice(2), 16));
+        cells.push(cell);
+
+        if (query.capacity && query.capacity.lte(total)) {
+          stop = true;
+          break;
+        }
+      }
+
+      if (stop || data.length < 100) {
+        break;
+      }
+      skip += 100;
+    }
+
+    return {
+      cells: cells,
+      total: total,
+      totalCKB: totalCKB,
+    };
   }
 }

@@ -41,16 +41,35 @@ export default class CellRepository {
   async find(query: any): Promise<Cell[]> {
     const selectBuilder = this.repository.createQueryBuilder().where("(status = 'normal' or status = 'pending')");
     if (query.lockHash) {
-      selectBuilder.andWhere("lockHash = :lockHash", {lockHash: query.lockHash});
+      if (query.lockHash === "null") {
+        selectBuilder.andWhere("lockHash is null");
+      } else {
+        selectBuilder.andWhere("lockHash = :lockHash", {lockHash: query.lockHash});
+      }
     }
     if (query.lockCodeHash) {
-      selectBuilder.andWhere("lockCodeHash = :lockCodeHash", {lockCodeHash: query.lockCodeHash});
+      if (query.lockCodeHash === "null") {
+        selectBuilder.andWhere("lockCodeHash is null");
+      } else {
+        selectBuilder.andWhere("lockCodeHash = :lockCodeHash", {lockCodeHash: query.lockCodeHash});
+      }
     }
     if (query.typeHash) {
-      selectBuilder.andWhere("typeHash = :typeHash", {typeHash: query.typeHash});
+      if (query.typeHash === "null") {
+        selectBuilder.andWhere("typeHash is null");
+      } else {
+        selectBuilder.andWhere("typeHash = :typeHash", {typeHash: query.typeHash});
+      }
     }
     if (query.typeCodeHash) {
-      selectBuilder.andWhere("typeCodeHash = :typeCodeHash", {typeCodeHash: query.typeCodeHash});
+      if (query.typeCodeHash === "null") {
+        selectBuilder.andWhere("typeCodeHash is null");
+      } else {
+        selectBuilder.andWhere("typeCodeHash = :typeCodeHash", {typeCodeHash: query.typeCodeHash});
+      }
+    }
+    if (query.data) {
+      selectBuilder.andWhere("data = :data", {data: query.data});
     }
 
     if (query.skip) {
