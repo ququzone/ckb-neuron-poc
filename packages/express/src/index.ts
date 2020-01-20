@@ -1,8 +1,8 @@
 import axios from "axios";
 import queryString from "query-string";
-import { CacheService } from "ckb-neuron-poc-service/lib/cache";
+import BN from "bn.js";
+import { CacheService, Query, QueryResult } from "ckb-neuron-poc-service/lib/cache";
 import { Rule } from "ckb-neuron-poc-service/lib/database/entity/rule";
-import { Cell } from "ckb-neuron-poc-service/lib/database/entity/cell";
 import { RuleName } from "ckb-neuron-poc-service/lib/plugins";
 
 export class HttpCacheService implements CacheService {
@@ -32,12 +32,46 @@ export class HttpCacheService implements CacheService {
     throw new Error("Method not implemented.");
   }
 
-  async findCells(query: any): Promise<Cell[]> {
-    if (query) {
-      const res = await axios.get(`${this.url}/cells?${queryString.stringify(query)}`);
-      return res.data;
+  async findCells(query: Query): Promise<QueryResult>{
+    const _query = {
+      lockHash: query.lockHash,
+      lockCodeHash: query.lockCodeHash,
+      typeHash: query.typeHash,
+      typeCodeHash: query.typeCodeHash,
+      data: query.data
+    };
+
+    const totalCKB = new BN(0);
+    const total = new BN(0);
+    const cells = [];
+    let skip = 0;
+    while (true) {
+      let stop = false;
+      // @ts-ignore
+      _query.skip = skip;
+      const data = (await axios.get(`${this.url}/cells?${queryString.stringify(_query)}`)).data;
+      for (let i = 0; i < data.length; i++) {
+        const cell = data[i];
+        total.iadd(query.capacityFetcher(cell));
+        totalCKB.iadd(new BN(cell.capacity.slice(2), 16));
+        cells.push(cell);
+
+        if (query.capacity && query.capacity.lte(total)) {
+          stop = true;
+          break;
+        }
+      }
+
+      if (stop || data.length < 100) {
+        break;
+      }
+      skip += 100;
     }
-    const res = await axios.get(`${this.url}/cells`);
-    return res.data;
+
+    return {
+      cells: cells,
+      total: total,
+      totalCKB: totalCKB,
+    };
   }
 }
