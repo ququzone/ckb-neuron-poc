@@ -1,6 +1,8 @@
-import { Action, RuleName, Script, Rule, DefaultAction, DefaultPlugin } from "ckb-neuron-poc-service/lib/plugins";
-import * as utils from "@nervosnetwork/ckb-sdk-utils";
 import BN from "bn.js";
+import * as utils from "@nervosnetwork/ckb-sdk-utils";
+import { Action, RuleName, Script, Rule, DefaultAction, DefaultPlugin } from "ckb-neuron-poc-service/lib/plugins";
+import { QueryBuilder } from "ckb-neuron-poc-service/lib/cache";
+import { Cell } from "ckb-neuron-poc-service/lib/database/entity/cell";
 
 export class UDTTypeScript implements Script {
   public name: "SimpleUDTTypeScript";
@@ -61,17 +63,17 @@ export class IssueAction extends DefaultAction {
     });
     rawTx.outputsData.push(`0x${new BN(totalSupply).toBuffer("le", 16).toString("hex")}`);
 
-    let sum = new BN(0);
-    // TODO only first 100 cells
-    const cells = await this.plugin.getContext().getCacheService().findCells({lockHash: this.plugin.lock.hash()});
-    for (let i = 0; i < cells.length; i++) {
-      const element = cells[i];
-      if (element.typeHash || element.data != "0x") {
-        continue;
-      }
-
-      sum = sum.add(new BN(element.capacity.slice(2), 16));
-
+    const result = await this.plugin.getContext().getCacheService().findCells(
+      QueryBuilder.create()
+        .setLockHash(this.plugin.lock.hash())
+        .setTypeCodeHash("null")
+        .setData("0x")
+        .setCapacity(total)
+        .build()
+    );
+    for (let i = 0; i < result.cells.length; i++) {
+      const element = result.cells[i];
+    
       rawTx.inputs.push({
         previousOutput: {
           txHash: element.txHash,
@@ -80,17 +82,14 @@ export class IssueAction extends DefaultAction {
         since: "0x0",
       });
       rawTx.witnesses.push("0x");
-      if (sum.lt(total)) {
-        continue;
-      }
-      if (sum.gt(total) && sum.sub(total).gt(new BN(minCapacity))) {
-        rawTx.outputs.push({
-          capacity: `0x${sum.sub(total).toString(16)}`,
-          lock: this.plugin.lock.script
-        });
-        rawTx.outputsData.push("0x");
-      }
-      break;
+    }
+
+    if (result.total.gt(total) && result.total.sub(total).gt(new BN(minCapacity))) {
+      rawTx.outputs.push({
+        capacity: `0x${result.total.sub(total).toString(16)}`,
+        lock: this.plugin.lock.script
+      });
+      rawTx.outputsData.push("0x");
     }
 
     // @ts-ignore
@@ -121,14 +120,20 @@ export class BurnAction extends DefaultAction {
       lock: this.plugin.lock.script,
     });
     rawTx.outputsData.push("0x");
-    
-    let sum = new BN(0);
-    // TODO only first 100 cells
-    const cells = await this.plugin.getContext().getCacheService().findCells({lockHash: this.plugin.lock.hash(), typeHash: this.plugin.type.hash()});
-    for (let i = 0; i < cells.length; i++) {
-      const element = cells[i];
 
-      sum = sum.add(new BN(element.capacity.slice(2), 16));
+    const result = await this.plugin.getContext().getCacheService().findCells(
+      QueryBuilder.create()
+        .setLockHash(this.plugin.lock.hash())
+        .setTypeHash(this.plugin.type.hash())
+        .setCapacityFetcher((cell: Cell) => {
+          return new BN(Buffer.from(cell.data.slice(2), "hex"), 16, "le")
+        })
+        .build()
+    );
+
+    for (let i = 0; i < result.cells.length; i++) {
+      const element = result.cells[i];
+
       rawTx.inputs.push({
         previousOutput: {
           txHash: element.txHash,
@@ -138,7 +143,7 @@ export class BurnAction extends DefaultAction {
       });
       rawTx.witnesses.push("0x");
     }
-    rawTx.outputs[0].capacity = `0x${sum.sub(new BN(fee)).toString(16)}`;
+    rawTx.outputs[0].capacity = `0x${result.totalCKB.sub(new BN(fee)).toString(16)}`;
 
     // @ts-ignore
     rawTx.witnesses[0] = {
@@ -174,13 +179,20 @@ export class TransferAction extends DefaultAction {
     });
     rawTx.outputsData.push(`0x${bigAmount.toBuffer("le", 16).toString("hex")}`);
   
-    let sum = new BN(0);
-    // TODO only first 100 cells
-    let cells = await this.plugin.getContext().getCacheService().findCells({lockHash: this.plugin.lock.hash(), typeHash: this.plugin.type.hash()});
-    for (let i = 0; i < cells.length; i++) {
-      const element = cells[i];
+    let result = await this.plugin.getContext().getCacheService().findCells(
+      QueryBuilder.create()
+        .setLockHash(this.plugin.lock.hash())
+        .setTypeHash(this.plugin.type.hash())
+        .setCapacity(bigAmount)
+        .setCapacityFetcher((cell: Cell) => {
+          return new BN(Buffer.from(cell.data.slice(2), "hex"), 16, "le")
+        })
+        .build()
+    );
 
-      sum = sum.add(new BN(Buffer.from(element.data.slice(2), "hex"), 16, "le"));
+    for (let i = 0; i < result.cells.length; i++) {
+      const element = result.cells[i];
+
       rawTx.inputs.push({
         previousOutput: {
           txHash: element.txHash,
@@ -189,36 +201,32 @@ export class TransferAction extends DefaultAction {
         since: "0x0",
       });
       rawTx.witnesses.push("0x");
-      gatheredCKB = gatheredCKB.add(new BN(element.capacity.slice(2), 16));
-
-      if (sum.lt(bigAmount)) {
-        continue;
-      }
     }
 
-    if (sum.gt(bigAmount)) {
+    if (result.total.gt(bigAmount)) {
       rawTx.outputs.push({
         capacity: `0x${new BN(cellCapacity).toString(16)}`,
         lock: this.plugin.lock.script,
         type: this.plugin.type.script
       });
-      rawTx.outputsData.push(`0x${sum.sub(bigAmount).toBuffer("le", 16).toString("hex")}`);
+      rawTx.outputsData.push(`0x${result.total.sub(bigAmount).toBuffer("le", 16).toString("hex")}`);
       totalCKB = totalCKB.add(new BN(cellCapacity));
     }
 
-    sum = new BN(gatheredCKB);
+    gatheredCKB = new BN(result.totalCKB);
+    if (result.totalCKB.lt(totalCKB)) {
+      result = await this.plugin.getContext().getCacheService().findCells(
+        QueryBuilder.create()
+          .setLockHash(this.plugin.lock.hash())
+          .setTypeCodeHash("null")
+          .setData("0x")
+          .setCapacity(totalCKB.sub(result.totalCKB))
+          .build()
+      );
 
-    if (sum.lt(totalCKB)) {
-      // TODO only first 100 cells
-      cells = await this.plugin.getContext().getCacheService().findCells({lockHash: this.plugin.lock.hash()});
-      for (let i = 0; i < cells.length; i++) {
-        const element = cells[i];
+      for (let i = 0; i < result.cells.length; i++) {
+        const element = result.cells[i];
 
-        if (element.typeHash || element.data != "0x") {
-          continue;
-        }
-
-        sum = sum.add(new BN(element.capacity.slice(2), 16));
         rawTx.inputs.push({
           previousOutput: {
             txHash: element.txHash,
@@ -227,17 +235,14 @@ export class TransferAction extends DefaultAction {
           since: "0x0",
         });
         rawTx.witnesses.push("0x");
-        gatheredCKB.add(new BN(element.capacity.slice(2), 16));
-
-        if (sum.gte(totalCKB)) {
-          break;
-        }
       }
+
+      gatheredCKB.iadd(result.total);
     }
 
-    if (sum.gt(totalCKB) && sum.sub(totalCKB).gt(new BN(minCapacity))) {
+    if (gatheredCKB.gt(totalCKB) && gatheredCKB.sub(totalCKB).gt(new BN(minCapacity))) {
       rawTx.outputs.push({
-        capacity: `0x${sum.sub(totalCKB).toString(16)}`,
+        capacity: `0x${gatheredCKB.sub(totalCKB).toString(16)}`,
         lock: this.plugin.lock.script
       });
       rawTx.outputsData.push("0x");
@@ -262,13 +267,17 @@ export class BalanceAction extends DefaultAction {
       throw new Error("host plugin must implement getContext method");
     }
   
-    // TODO only first 100 cells
-    const cells = await this.plugin.getContext().getCacheService().findCells({lockHash: lockHash, typeHash: this.plugin.type.hash()});
+    const result = await this.plugin.getContext().getCacheService().findCells(
+      QueryBuilder.create()
+        .setLockHash(lockHash)
+        .setTypeHash(this.plugin.type.hash())
+        .setCapacityFetcher((cell: Cell) => {
+          return new BN(Buffer.from(cell.data.slice(2), "hex"), 16, "le")
+        })
+        .build()
+    );
 
-    const total = cells.reduce((sum: BN, cell: any) => {
-      return sum.add(new BN(Buffer.from(cell.data.slice(2), "hex"), 16, "le"));
-    }, new BN(0));
-    return `${lockHash} balance is: ${total}`;
+    return `${lockHash} balance is: ${result.total}`;
   }
 }
 
@@ -305,12 +314,16 @@ export class SimpleUDTPlugin extends DefaultPlugin {
   }
 
   public async info(): Promise<string> {
-    // TODO only first 100 cells
-    const cells = await this.getContext().getCacheService().findCells({lockHash: this.lock.hash(), typeHash: this.type.hash()});
+    const result = await this.getContext().getCacheService().findCells(
+      QueryBuilder.create()
+        .setLockHash(this.lock.hash())
+        .setTypeHash(this.type.hash())
+        .setCapacityFetcher((cell: Cell) => {
+          return new BN(Buffer.from(cell.data.slice(2), "hex"), 16, "le")
+        })
+        .build()
+    );
 
-    const total = cells.reduce((sum: BN, cell: any) => {
-      return sum.add(new BN(Buffer.from(cell.data.slice(2), "hex"), 16, "le"));
-    }, new BN(0));
-    return `${this.lock.hash()} balance is: ${total}`;
+    return `${this.lock.hash()} balance is: ${result.total}`;
   }
 }
