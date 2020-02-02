@@ -13,10 +13,7 @@ export class HttpCacheService implements CacheService {
   }
 
   async addRule(rule: Rule): Promise<void> {
-    await axios.post(`${this.url}/rule`, {
-      name: RuleName[rule.name],
-      value: rule.data
-    });
+    await axios.post(`${this.url}/rule`, rule);
   }
   
   async allRules(): Promise<Rule[]> {
