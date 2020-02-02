@@ -24,7 +24,7 @@ export default async function run(key: string, to: string, amount: string) {
   const rawTx = await plugin.actions[0].transaction({
     hashType: "data" as CKBComponents.ScriptHashType,
     codeHash: "0x966e7bf34d4f6dc7ea18c0f86fe9ced504fad7565b47f8c3e168d2e48b1e2970",
-    args: to,
+    args: to.toLowerCase(),
   }, amount, 1000);
 
   const tx = plugin.sign(rawTx);

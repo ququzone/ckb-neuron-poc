@@ -69,10 +69,10 @@ export class HttpSecp256k1Plugin extends Secp256k1SinglePlugin {
 
   public async info(): Promise<string> {
     const result = await this.getContext().getCacheService().findCells(
-    QueryBuilder.create()
-      .setLockHash(this.lock.hash())
-      .build()
-  );
+      QueryBuilder.create()
+        .setLockHash(this.lock.hash())
+        .build()
+    );
 
     const total = result.cells.reduce((sum: BN, cell: any) => {
       return sum.add(new BN(cell.capacity.slice(2), 16));
