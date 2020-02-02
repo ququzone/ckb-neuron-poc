@@ -136,9 +136,19 @@ export class PluginContext {
       throw new Error(`${key} plugin alreay exists`);
     }
 
-    for (let i = 0; i < plugin.cacheRules.length; i++) {
-      const rule = plugin.cacheRules[i];
-      await this.cacheService.addRule(rule);
+    const rules = plugin.cacheRules();
+    for (let i = 0; i < rules.length; i++) {
+      const rule = rules[i];
+      console.log({
+        id: null,
+        name: RuleName[rule.name].toString(),
+        data: rule.value,
+      });
+      await this.cacheService.addRule({
+        id: undefined,
+        name: RuleName[rule.name].toString(),
+        data: rule.value,
+      });
     }
     if (plugin.setContext) {
       plugin.setContext(this);
