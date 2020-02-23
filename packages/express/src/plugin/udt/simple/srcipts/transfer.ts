@@ -22,7 +22,7 @@ export default async function run(uuid: string, key: string, to: string, amount:
     lock
   );
 
-  context.addPlugin("simple-udt-plugin", plugin);
+  await context.addPlugin("simple-udt-plugin", plugin);
 
   const info = await plugin.info();
   console.log(info);

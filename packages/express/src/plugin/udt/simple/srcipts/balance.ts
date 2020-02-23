@@ -15,7 +15,7 @@ export default async function run(uuid: string, lockHash: string) {
     [new BalanceAction()]
   );
 
-  context.addPlugin("simple-udt-plugin", plugin);
+  await context.addPlugin("simple-udt-plugin", plugin);
 
   console.log(await plugin.actions[0].query(lockHash));
 }

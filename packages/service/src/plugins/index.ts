@@ -92,7 +92,7 @@ export class DefaultPlugin implements Plugin {
   }
 
   cacheRules(): Rule[] {
-    throw new Error("Method not implemented.");
+    return [];
   }
 
   info(): Promise<string> {

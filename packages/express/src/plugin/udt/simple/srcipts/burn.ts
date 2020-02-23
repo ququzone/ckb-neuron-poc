@@ -22,7 +22,7 @@ export default async function run(uuid: string, key: string) {
     lock
   );
 
-  context.addPlugin("simple-udt-plugin", plugin);
+  await context.addPlugin("simple-udt-plugin", plugin);
 
   // issue all UDT
   const rawTx = await plugin.actions[0].transaction();
